@@ -1,54 +1,106 @@
-# React + TypeScript + Vite
+# TrueDoc Admin Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, responsive admin dashboard for managing medical professionals and healthcare institutions. Built with React, TypeScript, and Chakra UI, integrated with Supabase backend.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 1. Real-Time Dashboard Metrics
+- **Pending Doctors**: Track doctors awaiting approval
+- **Approved Doctors**: Monitor active doctors in the system
+- **Total Leads**: Overview of all potential doctor registrations
+- **Pending Changes**: Track approved doctors with pending profile updates
 
-## Expanding the ESLint configuration
+### 2. Comprehensive Management Sections
+- **Doctors Management**: Review, approve, and manage doctor profiles
+- **Leads Tracking**: Monitor and manage potential doctor registrations
+- **Institutions**: Manage partner hospitals and medical facilities
+- **Medical Schools**: Track and manage affiliated medical institutions
+- **Insurance Partners**: Handle healthcare insurance partnerships
+- **Specialties**: Manage medical specialties and subspecialties
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 3. Technical Features
+- Real-time data updates using Supabase
+- Responsive design for all screen sizes
+- Modern UI with Chakra UI components
+- Smooth animations with Framer Motion
+- Type-safe development with TypeScript
+- Efficient routing with React Router
+- Professional color scheme based on #5deb99
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+## Tech Stack
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+- **Frontend Framework**: React 18 with TypeScript
+- **UI Library**: Chakra UI
+- **State Management**: React Query
+- **Database**: Supabase
+- **Animations**: Framer Motion
+- **Build Tool**: Vite
+- **Icons**: React Icons
+- **Routing**: React Router DOM
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Getting Started
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+### Prerequisites
+- Node.js (v14 or higher)
+- npm or yarn
+- Supabase account and project
+
+### Installation
+
+1. Clone the repository:
+\`\`\`bash
+git clone https://github.com/EskindirA/truedocadmin.git
+cd truedocadmin
+\`\`\`
+
+2. Install dependencies:
+\`\`\`bash
+npm install
+\`\`\`
+
+3. Create a .env file in the root directory and add your Supabase credentials:
+\`\`\`env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+\`\`\`
+
+4. Start the development server:
+\`\`\`bash
+npm run dev
+\`\`\`
+
+The application will be available at http://localhost:3000
+
+## Project Structure
+
+\`\`\`
+src/
+├── components/         # Reusable UI components
+│   ├── dashboard/     # Dashboard-specific components
+│   └── ...
+├── contexts/          # React contexts
+├── lib/              # Utility functions and API clients
+├── pages/            # Page components
+└── main.tsx          # Application entry point
+\`\`\`
+
+## Database Schema
+
+The application uses the following main tables in Supabase:
+- `medicos`: Doctor profiles
+- `lead`: Potential doctor registrations
+- `formacao_outros`: Additional medical education
+- `medico_especialidade_residencia`: Doctor specialties
+- `medico_subespecialidade_residencia`: Doctor subspecialties
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch: `git checkout -b feature/AmazingFeature`
+3. Commit your changes: `git commit -m 'Add some AmazingFeature'`
+4. Push to the branch: `git push origin feature/AmazingFeature`
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License.
