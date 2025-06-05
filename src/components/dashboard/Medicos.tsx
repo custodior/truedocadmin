@@ -32,6 +32,7 @@ import PageContainer from './PageContainer'
 import { motion } from 'framer-motion'
 import { supabase } from '../../lib/supabaseClient'
 import { useDebounce } from 'use-debounce'
+import { useNavigate } from 'react-router-dom'
 
 const MotionBox = motion(Box)
 
@@ -54,6 +55,7 @@ interface Doctor {
 const ITEMS_PER_PAGE = 8
 
 const Medicos = () => {
+  const navigate = useNavigate()
   const [doctors, setDoctors] = useState<Doctor[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -139,6 +141,10 @@ const Medicos = () => {
   const toggleUnapproved = () => {
     setShowOnlyUnapproved(!showOnlyUnapproved)
     setCurrentPage(0) // Reset to first page when toggling filter
+  }
+
+  const handleDoctorClick = (doctorId: string) => {
+    navigate(`/dashboard/medicos/${doctorId}`)
   }
 
   const getStatusBadge = (approved: boolean) => {
@@ -240,12 +246,16 @@ const Medicos = () => {
               </Tr>
             ) : (
               doctors.map((doctor) => (
-                <Tr key={doctor.id}>
+                <Tr 
+                  key={doctor.id}
+                  _hover={{ bg: 'gray.50', cursor: 'pointer' }}
+                  onClick={() => handleDoctorClick(doctor.id)}
+                >
                   <Td fontWeight="medium">{doctor.nome}</Td>
                   <Td>{doctor.crm}</Td>
                   <Td>{getStatusBadge(doctor.aprovado)}</Td>
                   <Td>{new Date(doctor.created_at).toLocaleDateString('pt-BR')}</Td>
-                  <Td>
+                  <Td onClick={(e) => e.stopPropagation()}>
                     <Menu>
                       <MenuButton
                         as={IconButton}
@@ -255,7 +265,7 @@ const Medicos = () => {
                         borderRadius="full"
                       />
                       <MenuList>
-                        <MenuItem>Ver detalhes</MenuItem>
+                        <MenuItem onClick={() => handleDoctorClick(doctor.id)}>Ver detalhes</MenuItem>
                         <MenuItem>Editar</MenuItem>
                         <MenuItem color="red.500">Remover</MenuItem>
                       </MenuList>

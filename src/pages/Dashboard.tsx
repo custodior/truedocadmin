@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import DashboardLayout from '../components/DashboardLayout'
 import DashboardOverview from '../components/dashboard/DashboardOverview'
 import Medicos from '../components/dashboard/Medicos'
+import DoctorDetails from './DoctorDetails'
 import Leads from '../components/dashboard/Leads'
 import Faculdades from '../components/dashboard/Faculdades'
 import Instituicoes from '../components/dashboard/Instituicoes'
@@ -15,6 +16,7 @@ const Dashboard = () => {
       <Routes>
         <Route path="/" element={<DashboardOverview />} />
         <Route path="/medicos" element={<Medicos />} />
+        <Route path="/medicos/:id" element={<DoctorDetails />} />
         <Route path="/leads" element={<Leads />} />
         <Route path="/faculdades" element={<Faculdades />} />
         <Route path="/instituicoes" element={<Instituicoes />} />
