@@ -1,10 +1,9 @@
 import { supabase } from './supabaseClient'
 
 export interface Lead {
-  id: number
+  id: string
   email: string
-  step: 'new' | 'contacted' | 'converted'
-  created_at: string
+  step: string
 }
 
 export interface LeadFilters {
@@ -61,7 +60,7 @@ export const getLeads = async (
   }
 }
 
-export const createLead = async (lead: Omit<Lead, 'id' | 'created_at'>) => {
+export const createLead = async (lead: Omit<Lead, 'id'>) => {
   try {
     const { data, error } = await supabase
       .from('lead')
@@ -78,7 +77,7 @@ export const createLead = async (lead: Omit<Lead, 'id' | 'created_at'>) => {
   }
 }
 
-export const updateLead = async (id: number, updates: Partial<Lead>) => {
+export const updateLead = async (id: string, updates: Partial<Lead>) => {
   try {
     const { data, error } = await supabase
       .from('lead')
@@ -96,7 +95,7 @@ export const updateLead = async (id: number, updates: Partial<Lead>) => {
   }
 }
 
-export const deleteLead = async (id: number) => {
+export const deleteLead = async (id: string) => {
   try {
     const { error } = await supabase
       .from('lead')

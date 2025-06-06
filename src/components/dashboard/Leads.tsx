@@ -14,21 +14,9 @@ import {
   MenuList,
   MenuItem,
   useColorModeValue,
-  Button,
-  HStack,
   Input,
   InputGroup,
   InputLeftElement,
-  useDisclosure,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalCloseButton,
-  FormControl,
-  FormLabel,
-  VStack,
   useToast,
   Flex,
   Spinner,
@@ -36,8 +24,9 @@ import {
   AlertIcon,
   AlertDescription,
   Text,
+  HStack,
 } from '@chakra-ui/react'
-import { FiMoreVertical, FiSearch, FiUserPlus, FiChevronLeft, FiChevronRight } from 'react-icons/fi'
+import { FiMoreVertical, FiSearch, FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 import PageContainer from './PageContainer'
 import { motion } from 'framer-motion'
 import {
@@ -46,8 +35,6 @@ import {
   LeadSort,
   PaginationParams,
   getLeads,
-  createLead,
-  updateLead,
   deleteLead,
 } from '../../lib/leadService'
 
@@ -63,38 +50,36 @@ const customColors = {
 
 const ITEMS_PER_PAGE = 10
 
-interface LeadFormData {
-  email: string
-  step: 'new' | 'contacted' | 'converted'
-}
-
-const initialFormData: LeadFormData = {
-  email: '',
-  step: 'new',
-}
-
 const Leads = () => {
   const tableBg = useColorModeValue('white', 'gray.800')
   const borderColor = useColorModeValue('gray.200', 'gray.700')
   const toast = useToast()
-  const { isOpen, onOpen, onClose } = useDisclosure()
 
   const [leads, setLeads] = useState<Lead[]>([])
   const [totalLeads, setTotalLeads] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [formData, setFormData] = useState<LeadFormData>(initialFormData)
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
 
   // Filters and Pagination
   const [filters, setFilters] = useState<LeadFilters>({})
-  const [sort, setSort] = useState<LeadSort>({ column: 'created_at', direction: 'desc' })
+  const [sort, setSort] = useState<LeadSort>({ column: 'email', direction: 'desc' })
   const [currentPage, setCurrentPage] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     fetchLeads()
   }, [filters, sort, currentPage])
+
+  // Add debounce to search
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchTerm !== (filters.search || '')) {
+        setFilters({ ...filters, search: searchTerm })
+        setCurrentPage(0)
+      }
+    }, 300)
+    return () => clearTimeout(timeoutId)
+  }, [searchTerm])
 
   const fetchLeads = async () => {
     try {
@@ -108,16 +93,11 @@ const Leads = () => {
       setTotalLeads(total)
       setError(null)
     } catch (err) {
-      setError('Erro ao carregar leads')
+      setError('Error loading leads')
       console.error('Error fetching leads:', err)
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const handleSearch = () => {
-    setFilters({ ...filters, search: searchTerm })
-    setCurrentPage(0)
   }
 
   const handleSort = (column: string) => {
@@ -127,62 +107,19 @@ const Leads = () => {
     })
   }
 
-  const handleCreateLead = async () => {
-    try {
-      const newLead = {
-        email: formData.email,
-        step: formData.step
-      }
-      await createLead(newLead)
-      toast({
-        title: 'Lead criado com sucesso',
-        status: 'success',
-        duration: 3000,
-      })
-      onClose()
-      setFormData(initialFormData)
-      fetchLeads()
-    } catch (err) {
-      toast({
-        title: 'Erro ao criar lead',
-        description: 'Por favor, tente novamente',
-        status: 'error',
-        duration: 3000,
-      })
-    }
-  }
-
-  const handleUpdateStep = async (id: number, newStep: Lead['step']) => {
-    try {
-      await updateLead(id, { step: newStep })
-      toast({
-        title: 'Status atualizado com sucesso',
-        status: 'success',
-        duration: 3000,
-      })
-      fetchLeads()
-    } catch (err) {
-      toast({
-        title: 'Erro ao atualizar status',
-        status: 'error',
-        duration: 3000,
-      })
-    }
-  }
-
-  const handleDeleteLead = async (id: number) => {
-    if (window.confirm('Tem certeza que deseja excluir este lead?')) {
+  const handleDeleteLead = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this lead?')) {
       try {
         await deleteLead(id)
         toast({
-          title: 'Lead excluído com sucesso',
+          title: 'Lead deleted successfully',
           status: 'success',
           duration: 3000,
         })
         fetchLeads()
       } catch (err) {
         toast({
-          title: 'Erro ao excluir lead',
+          title: 'Error deleting lead',
           status: 'error',
           duration: 3000,
         })
@@ -194,27 +131,30 @@ const Leads = () => {
     const props = {
       new: {
         colorScheme: 'blue',
-        text: 'Novo',
+        text: step,
       },
       contacted: {
         colorScheme: 'orange',
-        text: 'Contatado',
+        text: step,
       },
       converted: {
         colorScheme: 'green',
-        text: 'Convertido',
+        text: step,
       },
-    }[step]
+    }[step] || {
+      colorScheme: 'gray',
+      text: step,
+    }
 
     return (
       <Badge
-        colorScheme={props?.colorScheme}
+        colorScheme={props.colorScheme}
         px={2}
         py={1}
         borderRadius="full"
         textTransform="capitalize"
       >
-        {props?.text}
+        {props.text}
       </Badge>
     )
   }
@@ -224,7 +164,7 @@ const Leads = () => {
   return (
     <PageContainer
       title="Leads"
-      description="Gerencie seus leads e potenciais clientes"
+      description="Manage your leads and potential clients"
     >
       <HStack mb={6} spacing={4}>
         <InputGroup maxW="xs">
@@ -232,27 +172,13 @@ const Leads = () => {
             <FiSearch />
           </InputLeftElement>
           <Input
-            placeholder="Buscar por email..."
+            placeholder="Search by email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             bg={useColorModeValue('white', 'gray.800')}
             borderRadius="lg"
           />
         </InputGroup>
-        <Button
-          leftIcon={<FiUserPlus />}
-          bgGradient={`linear(to-r, ${customColors.primary}, ${customColors.secondary})`}
-          color="white"
-          onClick={onOpen}
-          _hover={{
-            bgGradient: `linear(to-r, ${customColors.primaryDark}, ${customColors.secondaryDark})`,
-          }}
-          borderRadius="lg"
-          px={6}
-        >
-          Novo Lead
-        </Button>
       </HStack>
 
       {error && (
@@ -285,13 +211,7 @@ const Leads = () => {
                 cursor="pointer" 
                 onClick={() => handleSort('step')}
               >
-                Status {sort.column === 'step' && (sort.direction === 'asc' ? '↑' : '↓')}
-              </Th>
-              <Th 
-                cursor="pointer" 
-                onClick={() => handleSort('created_at')}
-              >
-                Data de Cadastro {sort.column === 'created_at' && (sort.direction === 'asc' ? '↑' : '↓')}
+                Step {sort.column === 'step' && (sort.direction === 'asc' ? '↑' : '↓')}
               </Th>
               <Th></Th>
             </Tr>
@@ -299,14 +219,14 @@ const Leads = () => {
           <Tbody>
             {isLoading ? (
               <Tr>
-                <Td colSpan={4} textAlign="center" py={10}>
+                <Td colSpan={3} textAlign="center" py={10}>
                   <Spinner color={customColors.primary} />
                 </Td>
               </Tr>
             ) : leads.length === 0 ? (
               <Tr>
-                <Td colSpan={4} textAlign="center" py={10}>
-                  Nenhum lead encontrado
+                <Td colSpan={3} textAlign="center" py={10}>
+                  No leads found
                 </Td>
               </Tr>
             ) : (
@@ -314,7 +234,6 @@ const Leads = () => {
                 <Tr key={lead.id}>
                   <Td fontWeight="medium">{lead.email}</Td>
                   <Td>{getStepBadge(lead.step)}</Td>
-                  <Td>{new Date(lead.created_at).toLocaleDateString('pt-BR')}</Td>
                   <Td>
                     <Menu>
                       <MenuButton
@@ -325,14 +244,8 @@ const Leads = () => {
                         borderRadius="full"
                       />
                       <MenuList>
-                        <MenuItem onClick={() => handleUpdateStep(lead.id, 'contacted')}>
-                          Marcar como contatado
-                        </MenuItem>
-                        <MenuItem onClick={() => handleUpdateStep(lead.id, 'converted')}>
-                          Marcar como convertido
-                        </MenuItem>
                         <MenuItem color="red.500" onClick={() => handleDeleteLead(lead.id)}>
-                          Remover
+                          Remove
                         </MenuItem>
                       </MenuList>
                     </Menu>
@@ -346,7 +259,7 @@ const Leads = () => {
         {/* Pagination */}
         <Flex justify="space-between" align="center" px={6} py={4}>
           <Text color="gray.600">
-            {totalLeads} leads encontrados
+            {totalLeads} leads found
           </Text>
           <HStack spacing={2}>
             <IconButton
@@ -356,7 +269,7 @@ const Leads = () => {
               onClick={() => setCurrentPage(currentPage - 1)}
             />
             <Text>
-              Página {currentPage + 1} de {totalPages}
+              Page {currentPage + 1} of {totalPages}
             </Text>
             <IconButton
               icon={<FiChevronRight />}
@@ -367,42 +280,6 @@ const Leads = () => {
           </HStack>
         </Flex>
       </MotionBox>
-
-      {/* Create Lead Modal */}
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>
-            Novo Lead
-          </ModalHeader>
-          <ModalCloseButton />
-          <ModalBody pb={6}>
-            <VStack spacing={4}>
-              <FormControl>
-                <FormLabel>Email</FormLabel>
-                <Input
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="email@exemplo.com"
-                  type="email"
-                />
-              </FormControl>
-
-              <Button
-                width="full"
-                bgGradient={`linear(to-r, ${customColors.primary}, ${customColors.secondary})`}
-                color="white"
-                onClick={handleCreateLead}
-                _hover={{
-                  bgGradient: `linear(to-r, ${customColors.primaryDark}, ${customColors.secondaryDark})`,
-                }}
-              >
-                Criar Lead
-              </Button>
-            </VStack>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
     </PageContainer>
   )
 }
