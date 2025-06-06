@@ -2,21 +2,14 @@ import { supabase } from './supabaseClient'
 
 export interface Lead {
   id: number
-  name: string
   email: string
-  phone: string
-  source: string
-  status: 'new' | 'contacted' | 'converted'
+  step: 'new' | 'contacted' | 'converted'
   created_at: string
-  notes?: string
 }
 
 export interface LeadFilters {
   search?: string
-  status?: string
-  source?: string
-  startDate?: string
-  endDate?: string
+  step?: string
 }
 
 export interface LeadSort {
@@ -41,19 +34,10 @@ export const getLeads = async (
 
     // Apply filters
     if (filters.search) {
-      query = query.or(`name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,phone.ilike.%${filters.search}%`)
+      query = query.ilike('email', `%${filters.search}%`)
     }
-    if (filters.status) {
-      query = query.eq('status', filters.status)
-    }
-    if (filters.source) {
-      query = query.eq('source', filters.source)
-    }
-    if (filters.startDate) {
-      query = query.gte('created_at', filters.startDate)
-    }
-    if (filters.endDate) {
-      query = query.lte('created_at', filters.endDate)
+    if (filters.step) {
+      query = query.eq('step', filters.step)
     }
 
     // Apply sorting

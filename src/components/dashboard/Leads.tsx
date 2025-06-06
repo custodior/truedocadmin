@@ -19,8 +19,6 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
-  Tag,
-  Text,
   useDisclosure,
   Modal,
   ModalOverlay,
@@ -30,15 +28,14 @@ import {
   ModalCloseButton,
   FormControl,
   FormLabel,
-  Select,
   VStack,
-  Textarea,
   useToast,
   Flex,
   Spinner,
   Alert,
   AlertIcon,
   AlertDescription,
+  Text,
 } from '@chakra-ui/react'
 import { FiMoreVertical, FiSearch, FiUserPlus, FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 import PageContainer from './PageContainer'
@@ -52,7 +49,6 @@ import {
   createLead,
   updateLead,
   deleteLead,
-  getLeadSources,
 } from '../../lib/leadService'
 
 const MotionBox = motion(Box)
@@ -68,21 +64,13 @@ const customColors = {
 const ITEMS_PER_PAGE = 10
 
 interface LeadFormData {
-  name: string
   email: string
-  phone: string
-  source: string
-  status: 'new' | 'contacted' | 'converted'
-  notes?: string
+  step: 'new' | 'contacted' | 'converted'
 }
 
 const initialFormData: LeadFormData = {
-  name: '',
   email: '',
-  phone: '',
-  source: '',
-  status: 'new',
-  notes: '',
+  step: 'new',
 }
 
 const Leads = () => {
@@ -96,7 +84,6 @@ const Leads = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState<LeadFormData>(initialFormData)
-  const [sources, setSources] = useState<string[]>([])
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
 
   // Filters and Pagination
@@ -107,7 +94,6 @@ const Leads = () => {
 
   useEffect(() => {
     fetchLeads()
-    fetchSources()
   }, [filters, sort, currentPage])
 
   const fetchLeads = async () => {
@@ -129,15 +115,6 @@ const Leads = () => {
     }
   }
 
-  const fetchSources = async () => {
-    try {
-      const fetchedSources = await getLeadSources()
-      setSources(fetchedSources)
-    } catch (err) {
-      console.error('Error fetching sources:', err)
-    }
-  }
-
   const handleSearch = () => {
     setFilters({ ...filters, search: searchTerm })
     setCurrentPage(0)
@@ -152,7 +129,11 @@ const Leads = () => {
 
   const handleCreateLead = async () => {
     try {
-      await createLead(formData)
+      const newLead = {
+        email: formData.email,
+        step: formData.step
+      }
+      await createLead(newLead)
       toast({
         title: 'Lead criado com sucesso',
         status: 'success',
@@ -171,9 +152,9 @@ const Leads = () => {
     }
   }
 
-  const handleUpdateStatus = async (id: number, newStatus: Lead['status']) => {
+  const handleUpdateStep = async (id: number, newStep: Lead['step']) => {
     try {
-      await updateLead(id, { status: newStatus })
+      await updateLead(id, { step: newStep })
       toast({
         title: 'Status atualizado com sucesso',
         status: 'success',
@@ -209,7 +190,7 @@ const Leads = () => {
     }
   }
 
-  const getStatusBadge = (status: string) => {
+  const getStepBadge = (step: string) => {
     const props = {
       new: {
         colorScheme: 'blue',
@@ -223,7 +204,7 @@ const Leads = () => {
         colorScheme: 'green',
         text: 'Convertido',
       },
-    }[status]
+    }[step]
 
     return (
       <Badge
@@ -251,7 +232,7 @@ const Leads = () => {
             <FiSearch />
           </InputLeftElement>
           <Input
-            placeholder="Buscar leads..."
+            placeholder="Buscar por email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -296,22 +277,15 @@ const Leads = () => {
             <Tr>
               <Th 
                 cursor="pointer" 
-                onClick={() => handleSort('name')}
+                onClick={() => handleSort('email')}
               >
-                Nome {sort.column === 'name' && (sort.direction === 'asc' ? '↑' : '↓')}
-              </Th>
-              <Th>Contato</Th>
-              <Th 
-                cursor="pointer" 
-                onClick={() => handleSort('source')}
-              >
-                Origem {sort.column === 'source' && (sort.direction === 'asc' ? '↑' : '↓')}
+                Email {sort.column === 'email' && (sort.direction === 'asc' ? '↑' : '↓')}
               </Th>
               <Th 
                 cursor="pointer" 
-                onClick={() => handleSort('status')}
+                onClick={() => handleSort('step')}
               >
-                Status {sort.column === 'status' && (sort.direction === 'asc' ? '↑' : '↓')}
+                Status {sort.column === 'step' && (sort.direction === 'asc' ? '↑' : '↓')}
               </Th>
               <Th 
                 cursor="pointer" 
@@ -325,34 +299,21 @@ const Leads = () => {
           <Tbody>
             {isLoading ? (
               <Tr>
-                <Td colSpan={6} textAlign="center" py={10}>
+                <Td colSpan={4} textAlign="center" py={10}>
                   <Spinner color={customColors.primary} />
                 </Td>
               </Tr>
             ) : leads.length === 0 ? (
               <Tr>
-                <Td colSpan={6} textAlign="center" py={10}>
+                <Td colSpan={4} textAlign="center" py={10}>
                   Nenhum lead encontrado
                 </Td>
               </Tr>
             ) : (
               leads.map((lead) => (
                 <Tr key={lead.id}>
-                  <Td fontWeight="medium">{lead.name}</Td>
-                  <Td>
-                    <Box>
-                      <Text fontSize="sm">{lead.email}</Text>
-                      <Text fontSize="sm" color="gray.500">
-                        {lead.phone}
-                      </Text>
-                    </Box>
-                  </Td>
-                  <Td>
-                    <Tag size="sm" borderRadius="full">
-                      {lead.source}
-                    </Tag>
-                  </Td>
-                  <Td>{getStatusBadge(lead.status)}</Td>
+                  <Td fontWeight="medium">{lead.email}</Td>
+                  <Td>{getStepBadge(lead.step)}</Td>
                   <Td>{new Date(lead.created_at).toLocaleDateString('pt-BR')}</Td>
                   <Td>
                     <Menu>
@@ -364,11 +325,10 @@ const Leads = () => {
                         borderRadius="full"
                       />
                       <MenuList>
-                        <MenuItem onClick={() => setSelectedLead(lead)}>Ver detalhes</MenuItem>
-                        <MenuItem onClick={() => handleUpdateStatus(lead.id, 'contacted')}>
+                        <MenuItem onClick={() => handleUpdateStep(lead.id, 'contacted')}>
                           Marcar como contatado
                         </MenuItem>
-                        <MenuItem onClick={() => handleUpdateStatus(lead.id, 'converted')}>
+                        <MenuItem onClick={() => handleUpdateStep(lead.id, 'converted')}>
                           Marcar como convertido
                         </MenuItem>
                         <MenuItem color="red.500" onClick={() => handleDeleteLead(lead.id)}>
@@ -408,25 +368,16 @@ const Leads = () => {
         </Flex>
       </MotionBox>
 
-      {/* Create/Edit Lead Modal */}
+      {/* Create Lead Modal */}
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>
-            {selectedLead ? 'Editar Lead' : 'Novo Lead'}
+            Novo Lead
           </ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
             <VStack spacing={4}>
-              <FormControl>
-                <FormLabel>Nome</FormLabel>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Nome completo"
-                />
-              </FormControl>
-
               <FormControl>
                 <FormLabel>Email</FormLabel>
                 <Input
@@ -434,39 +385,6 @@ const Leads = () => {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="email@exemplo.com"
                   type="email"
-                />
-              </FormControl>
-
-              <FormControl>
-                <FormLabel>Telefone</FormLabel>
-                <Input
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="(00) 00000-0000"
-                />
-              </FormControl>
-
-              <FormControl>
-                <FormLabel>Origem</FormLabel>
-                <Select
-                  value={formData.source}
-                  onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                  placeholder="Selecione a origem"
-                >
-                  {sources.map((source) => (
-                    <option key={source} value={source}>
-                      {source}
-                    </option>
-                  ))}
-                </Select>
-              </FormControl>
-
-              <FormControl>
-                <FormLabel>Observações</FormLabel>
-                <Textarea
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="Adicione observações sobre o lead"
                 />
               </FormControl>
 
@@ -479,7 +397,7 @@ const Leads = () => {
                   bgGradient: `linear(to-r, ${customColors.primaryDark}, ${customColors.secondaryDark})`,
                 }}
               >
-                {selectedLead ? 'Salvar Alterações' : 'Criar Lead'}
+                Criar Lead
               </Button>
             </VStack>
           </ModalBody>
