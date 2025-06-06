@@ -216,7 +216,6 @@ CREATE TABLE IF NOT EXISTS "public"."medico" (
     "faculdade_outro" "text",
     "diploma" "text",
     "convenio_outro" "text",
-    "telefone" "text",
     "forma_contato" "text",
     "contato" "text",
     "website" "text",

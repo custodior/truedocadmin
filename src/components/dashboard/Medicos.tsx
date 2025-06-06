@@ -181,18 +181,18 @@ const Medicos = () => {
     >
       <HStack mb={6} spacing={4} justify="space-between">
         <HStack spacing={4} flex={1}>
-          <InputGroup maxW="xs">
-            <InputLeftElement pointerEvents="none" color="gray.400">
-              <FiSearch />
-            </InputLeftElement>
-            <Input
+        <InputGroup maxW="xs">
+          <InputLeftElement pointerEvents="none" color="gray.400">
+            <FiSearch />
+          </InputLeftElement>
+          <Input
               placeholder="Buscar por nome ou CRM..."
-              bg={useColorModeValue('white', 'gray.800')}
-              borderRadius="lg"
+            bg={useColorModeValue('white', 'gray.800')}
+            borderRadius="lg"
               value={searchTerm}
               onChange={handleSearch}
-            />
-          </InputGroup>
+          />
+        </InputGroup>
         </HStack>
         <FormControl display="flex" alignItems="center" maxW="xs">
           <FormLabel htmlFor="show-unapproved" mb="0" mr={3}>
@@ -252,26 +252,26 @@ const Medicos = () => {
                   onClick={() => handleDoctorClick(doctor.id)}
                 >
                   <Td fontWeight="medium">{doctor.nome}</Td>
-                  <Td>{doctor.crm}</Td>
+                <Td>{doctor.crm}</Td>
                   <Td>{getStatusBadge(doctor.aprovado)}</Td>
                   <Td>{new Date(doctor.created_at).toLocaleDateString('pt-BR')}</Td>
                   <Td onClick={(e) => e.stopPropagation()}>
-                    <Menu>
-                      <MenuButton
-                        as={IconButton}
-                        icon={<FiMoreVertical />}
-                        variant="ghost"
-                        size="sm"
-                        borderRadius="full"
-                      />
-                      <MenuList>
+                  <Menu>
+                    <MenuButton
+                      as={IconButton}
+                      icon={<FiMoreVertical />}
+                      variant="ghost"
+                      size="sm"
+                      borderRadius="full"
+                    />
+                    <MenuList>
                         <MenuItem onClick={() => handleDoctorClick(doctor.id)}>Ver detalhes</MenuItem>
-                        <MenuItem>Editar</MenuItem>
-                        <MenuItem color="red.500">Remover</MenuItem>
-                      </MenuList>
-                    </Menu>
-                  </Td>
-                </Tr>
+                      <MenuItem>Editar</MenuItem>
+                      <MenuItem color="red.500">Remover</MenuItem>
+                    </MenuList>
+                  </Menu>
+                </Td>
+              </Tr>
               ))
             )}
           </Tbody>
