@@ -33,6 +33,8 @@ import {
   IconButton,
   Wrap,
   WrapItem,
+  Input,
+  ModalFooter,
 } from '@chakra-ui/react'
 import { supabase } from '../lib/supabaseClient'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -46,7 +48,6 @@ import {
 } from 'react-icons/fa'
 import PageContainer from '../components/dashboard/PageContainer'
 import DoctorEditForm from '../components/dashboard/DoctorEditForm'
-import { DoctorFormData } from '../components/dashboard/DoctorEditForm'
 
 type ContactFormType = 'whatsapp' | 'site' | 'instagram' | 'telefone'
 
@@ -122,6 +123,7 @@ interface SupabaseDoctor {
     }
   }>
   localizacao: Array<{
+    id: string
     nome_endereco: string
     cep: string
     logradouro: string
@@ -131,6 +133,76 @@ interface SupabaseDoctor {
     cidade: string
     estado: string
     telefone: string
+    latitude?: number
+    longitude?: number
+  }>
+}
+
+interface DoctorFormData {
+  id: string
+  nome: string
+  crm: string
+  aprovado: boolean
+  created_at: string
+  email: string
+  website?: string
+  descricao?: string
+  foto?: string
+  diploma?: string
+  rqe?: string
+  new_rqe?: string
+  faculdade?: {
+    nome: string
+  }
+  faculdade_outro?: string
+  forma_contato?: ContactFormType
+  contato?: string
+  facebook?: string
+  instagram?: string
+  tiktok?: string
+  linkedin?: string
+  twitter?: string
+  teleconsulta?: boolean
+  convenio_outro?: string
+  especialidades: Array<{
+    id: string
+    nome: string
+    instituicao_residencia?: {
+      nome: string
+    }
+    instituicao_residencia_outra?: string
+    show_profile: boolean
+    aprovado: boolean
+  }>
+  subespecialidades: Array<{
+    id: string
+    subespecialidade_nome: string
+    instituicao_residencia?: {
+      nome: string
+    }
+    instituicao_residencia_outra?: string
+    aprovado: boolean
+  }>
+  formacao_outros: Array<{
+    id: string
+    nome: string
+    show_profile: boolean
+    aprovado: boolean
+  }>
+  convenios: Array<{ nome: string }>
+  localizacoes: Array<{
+    id: string
+    nome_endereco: string
+    cep: string
+    logradouro: string
+    numero: string
+    complemento?: string
+    bairro: string
+    cidade: string
+    estado: string
+    telefone: string
+    latitude?: number
+    longitude?: number
   }>
 }
 
@@ -148,7 +220,10 @@ const DoctorDetails = () => {
   const [comprovanteUrls, setComprovanteUrls] = React.useState<{ [key: string]: string }>({})
   const { isOpen: isDiplomaOpen, onOpen: onDiplomaOpen, onClose: onDiplomaClose } = useDisclosure()
   const { isOpen: isComprovanteOpen, onOpen: onComprovanteOpen, onClose: onComprovanteClose } = useDisclosure()
+  const { isOpen: isAddressEditOpen, onOpen: onAddressEditOpen, onClose: onAddressEditClose } = useDisclosure()
   const [selectedComprovante, setSelectedComprovante] = React.useState<{url: string, isPdf: boolean, filename: string} | null>(null)
+  const [selectedAddress, setSelectedAddress] = React.useState<DoctorFormData['localizacoes'][0] | null>(null)
+  const toast = useToast()
 
   const bgColor = useColorModeValue('white', 'gray.800')
   const borderColor = useColorModeValue('gray.200', 'gray.700')
@@ -235,6 +310,7 @@ const DoctorDetails = () => {
             convenio:convenio_id (nome)
           ),
           localizacao (
+            id,
             nome_endereco,
             cep,
             logradouro,
@@ -243,7 +319,9 @@ const DoctorDetails = () => {
             bairro,
             cidade,
             estado,
-            telefone
+            telefone,
+            latitude,
+            longitude
           )
         `)
         .eq('id', id)
@@ -307,6 +385,7 @@ const DoctorDetails = () => {
             .map(c => c.convenio)
             .filter((conv): conv is { nome: string } => conv !== null),
           localizacoes: data.localizacao.map(loc => ({
+            id: loc.id,
             nome_endereco: loc.nome_endereco,
             cep: loc.cep,
             logradouro: loc.logradouro,
@@ -315,7 +394,9 @@ const DoctorDetails = () => {
             bairro: loc.bairro,
             cidade: loc.cidade,
             estado: loc.estado,
-            telefone: loc.telefone
+            telefone: loc.telefone,
+            latitude: loc.latitude,
+            longitude: loc.longitude
           }))
         }
         setDoctor(transformedData)
@@ -378,6 +459,179 @@ const DoctorDetails = () => {
     const filename = url.split('/').pop() || ''
     setSelectedComprovante({ url, isPdf, filename })
     onComprovanteOpen()
+  }
+
+  const handleApproveEspecialidade = async (especialidadeId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('medico_especialidade_residencia')
+        .update({ aprovado: !currentStatus })
+        .eq('id', especialidadeId)
+
+      if (error) throw error
+
+      // Update local state
+      if (doctor) {
+        setDoctor({
+          ...doctor,
+          especialidades: doctor.especialidades.map(esp => 
+            esp.id === especialidadeId 
+              ? { ...esp, aprovado: !currentStatus }
+              : esp
+          )
+        })
+      }
+
+      toast({
+        title: `Especialidade ${!currentStatus ? 'aprovada' : 'desaprovada'} com sucesso`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      })
+    } catch (err) {
+      console.error('Error updating especialidade:', err)
+      toast({
+        title: 'Erro ao atualizar especialidade',
+        description: err instanceof Error ? err.message : 'Erro desconhecido',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+    }
+  }
+
+  const handleApproveSubespecialidade = async (subespecialidadeId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('medico_subespecialidade_residencia')
+        .update({ aprovado: !currentStatus })
+        .eq('id', subespecialidadeId)
+
+      if (error) throw error
+
+      // Update local state
+      if (doctor) {
+        setDoctor({
+          ...doctor,
+          subespecialidades: doctor.subespecialidades.map(sub => 
+            sub.id === subespecialidadeId 
+              ? { ...sub, aprovado: !currentStatus }
+              : sub
+          )
+        })
+      }
+
+      toast({
+        title: `Subespecialidade ${!currentStatus ? 'aprovada' : 'desaprovada'} com sucesso`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      })
+    } catch (err) {
+      console.error('Error updating subespecialidade:', err)
+      toast({
+        title: 'Erro ao atualizar subespecialidade',
+        description: err instanceof Error ? err.message : 'Erro desconhecido',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+    }
+  }
+
+  const handleApproveFormacao = async (formacaoId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('formacao_outros')
+        .update({ aprovado: !currentStatus })
+        .eq('id', formacaoId)
+
+      if (error) throw error
+
+      // Update local state
+      if (doctor) {
+        setDoctor({
+          ...doctor,
+          formacao_outros: doctor.formacao_outros.map(form => 
+            form.id === formacaoId 
+              ? { ...form, aprovado: !currentStatus }
+              : form
+          )
+        })
+      }
+
+      toast({
+        title: `Formação ${!currentStatus ? 'aprovada' : 'desaprovada'} com sucesso`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      })
+    } catch (err) {
+      console.error('Error updating formação:', err)
+      toast({
+        title: 'Erro ao atualizar formação',
+        description: err instanceof Error ? err.message : 'Erro desconhecido',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+    }
+  }
+
+  const handleEditAddress = (address: DoctorFormData['localizacoes'][0]) => {
+    setSelectedAddress(address)
+    onAddressEditOpen()
+  }
+
+  const handleSaveAddress = async (updatedAddress: typeof selectedAddress) => {
+    if (!doctor || !selectedAddress || !updatedAddress) return
+
+    try {
+      const { error } = await supabase
+        .from('localizacao')
+        .update({
+          nome_endereco: updatedAddress.nome_endereco,
+          cep: updatedAddress.cep,
+          logradouro: updatedAddress.logradouro,
+          numero: updatedAddress.numero,
+          complemento: updatedAddress.complemento,
+          bairro: updatedAddress.bairro,
+          cidade: updatedAddress.cidade,
+          estado: updatedAddress.estado,
+          telefone: updatedAddress.telefone,
+          latitude: updatedAddress.latitude,
+          longitude: updatedAddress.longitude
+        })
+        .eq('id', selectedAddress.id)
+
+      if (error) throw error
+
+      // Update local state
+      setDoctor({
+        ...doctor,
+        localizacoes: doctor.localizacoes.map(loc =>
+          loc.id === selectedAddress.id ? updatedAddress : loc
+        )
+      })
+
+      toast({
+        title: 'Endereço atualizado com sucesso',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      })
+
+      onAddressEditClose()
+    } catch (err) {
+      console.error('Error updating address:', err)
+      toast({
+        title: 'Erro ao atualizar endereço',
+        description: err instanceof Error ? err.message : 'Erro desconhecido',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+    }
   }
 
   if (error) {
@@ -543,14 +797,25 @@ const DoctorDetails = () => {
                   <VStack align="start" spacing={4}>
                     {doctor.especialidades.map((esp, index) => (
                       <Box key={esp.id} w="100%">
-                        <HStack spacing={2} mb={2}>
-                          <Text fontWeight="medium">{esp.nome}</Text>
-                          <Badge colorScheme={esp.aprovado ? 'green' : 'orange'}>
-                            {esp.aprovado ? 'Aprovada' : 'Pendente'}
-                          </Badge>
-                          {esp.show_profile && (
-                            <Badge colorScheme="blue">Exibir no Perfil</Badge>
-                          )}
+                        <HStack spacing={2} mb={2} justify="space-between">
+                          <HStack spacing={2}>
+                            <Text fontWeight="medium">{esp.nome}</Text>
+                            <Badge colorScheme={esp.aprovado ? 'green' : 'orange'}>
+                              {esp.aprovado ? 'Aprovada' : 'Pendente'}
+                            </Badge>
+                            {esp.show_profile && (
+                              <Badge colorScheme="blue">Exibir no Perfil</Badge>
+                            )}
+                          </HStack>
+                          <HStack spacing={2} align="center">
+                            <Text fontSize="sm" color="gray.600">Aprovar</Text>
+                            <Switch
+                              isChecked={esp.aprovado}
+                              onChange={() => handleApproveEspecialidade(esp.id, esp.aprovado)}
+                              colorScheme="green"
+                              size="lg"
+                            />
+                          </HStack>
                         </HStack>
                         {esp.instituicao_residencia && (
                           <Text color="gray.600" fontSize="sm">
@@ -579,11 +844,22 @@ const DoctorDetails = () => {
                   <VStack align="start" spacing={4}>
                     {doctor.subespecialidades.map((sub) => (
                       <Box key={sub.id} w="100%">
-                        <HStack spacing={2} mb={2}>
-                          <Text fontWeight="medium">{sub.subespecialidade_nome}</Text>
-                          <Badge colorScheme={sub.aprovado ? 'green' : 'orange'}>
-                            {sub.aprovado ? 'Aprovada' : 'Pendente'}
-                          </Badge>
+                        <HStack spacing={2} mb={2} justify="space-between">
+                          <HStack spacing={2}>
+                            <Text fontWeight="medium">{sub.subespecialidade_nome}</Text>
+                            <Badge colorScheme={sub.aprovado ? 'green' : 'orange'}>
+                              {sub.aprovado ? 'Aprovada' : 'Pendente'}
+                            </Badge>
+                          </HStack>
+                          <HStack spacing={2} align="center">
+                            <Text fontSize="sm" color="gray.600">Aprovar</Text>
+                            <Switch
+                              isChecked={sub.aprovado}
+                              onChange={() => handleApproveSubespecialidade(sub.id, sub.aprovado)}
+                              colorScheme="green"
+                              size="lg"
+                            />
+                          </HStack>
                         </HStack>
                         {sub.instituicao_residencia && (
                           <Text color="gray.600" fontSize="sm">
@@ -643,14 +919,25 @@ const DoctorDetails = () => {
                     <VStack align="start" spacing={4}>
                       {doctor.formacao_outros.map((formacao) => (
                         <Box key={formacao.id} w="100%">
-                          <HStack spacing={2}>
-                            <Text fontWeight="medium">{formacao.nome}</Text>
-                            <Badge colorScheme={formacao.aprovado ? 'green' : 'orange'}>
-                              {formacao.aprovado ? 'Aprovada' : 'Pendente'}
-                            </Badge>
-                            {formacao.show_profile && (
-                              <Badge colorScheme="blue">Exibir no Perfil</Badge>
-                            )}
+                          <HStack spacing={2} justify="space-between">
+                            <HStack spacing={2}>
+                              <Text fontWeight="medium">{formacao.nome}</Text>
+                              <Badge colorScheme={formacao.aprovado ? 'green' : 'orange'}>
+                                {formacao.aprovado ? 'Aprovada' : 'Pendente'}
+                              </Badge>
+                              {formacao.show_profile && (
+                                <Badge colorScheme="blue">Exibir no Perfil</Badge>
+                              )}
+                            </HStack>
+                            <HStack spacing={2} align="center">
+                              <Text fontSize="sm" color="gray.600">Aprovar</Text>
+                              <Switch
+                                isChecked={formacao.aprovado}
+                                onChange={() => handleApproveFormacao(formacao.id, formacao.aprovado)}
+                                colorScheme="green"
+                                size="lg"
+                              />
+                            </HStack>
                           </HStack>
                         </Box>
                       ))}
@@ -764,10 +1051,21 @@ const DoctorDetails = () => {
                   <Box>
                     <Text fontSize="lg" fontWeight="semibold" mb={3}>Endereços</Text>
                     <VStack align="start" spacing={4}>
-                      {doctor.localizacoes.map((loc, index) => (
-                        <Box key={index} p={4} bg="gray.50" borderRadius="md" w="100%">
-                          <VStack align="start" spacing={1}>
+                      {doctor.localizacoes.map((loc) => (
+                        <Box key={loc.id} p={4} bg="gray.50" borderRadius="md" w="100%">
+                          <HStack justify="space-between" w="100%" mb={2}>
                             <Text fontWeight="medium">{loc.nome_endereco}</Text>
+                            <Button
+                              size="sm"
+                              leftIcon={<FiEdit />}
+                              onClick={() => handleEditAddress(loc)}
+                              colorScheme="blue"
+                              variant="ghost"
+                            >
+                              Editar
+                            </Button>
+                          </HStack>
+                          <VStack align="start" spacing={1}>
                             <Text>
                               {loc.logradouro}, {loc.numero}
                               {loc.complemento && `, ${loc.complemento}`}
@@ -867,6 +1165,158 @@ const DoctorDetails = () => {
               />
             )}
           </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      {/* Address Edit Modal */}
+      <Modal isOpen={isAddressEditOpen} onClose={onAddressEditClose} size="xl">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Editar Endereço</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            {selectedAddress && (
+              <VStack spacing={4}>
+                <FormControl>
+                  <FormLabel>Nome do Endereço</FormLabel>
+                  <Input
+                    value={selectedAddress.nome_endereco}
+                    onChange={(e) => setSelectedAddress({
+                      ...selectedAddress,
+                      nome_endereco: e.target.value
+                    })}
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>CEP</FormLabel>
+                  <Input
+                    value={selectedAddress.cep}
+                    onChange={(e) => setSelectedAddress({
+                      ...selectedAddress,
+                      cep: e.target.value
+                    })}
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Logradouro</FormLabel>
+                  <Input
+                    value={selectedAddress.logradouro}
+                    onChange={(e) => setSelectedAddress({
+                      ...selectedAddress,
+                      logradouro: e.target.value
+                    })}
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Número</FormLabel>
+                  <Input
+                    value={selectedAddress.numero}
+                    onChange={(e) => setSelectedAddress({
+                      ...selectedAddress,
+                      numero: e.target.value
+                    })}
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Complemento</FormLabel>
+                  <Input
+                    value={selectedAddress.complemento || ''}
+                    onChange={(e) => setSelectedAddress({
+                      ...selectedAddress,
+                      complemento: e.target.value
+                    })}
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Bairro</FormLabel>
+                  <Input
+                    value={selectedAddress.bairro}
+                    onChange={(e) => setSelectedAddress({
+                      ...selectedAddress,
+                      bairro: e.target.value
+                    })}
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Cidade</FormLabel>
+                  <Input
+                    value={selectedAddress.cidade}
+                    onChange={(e) => setSelectedAddress({
+                      ...selectedAddress,
+                      cidade: e.target.value
+                    })}
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Estado</FormLabel>
+                  <Input
+                    value={selectedAddress.estado}
+                    onChange={(e) => setSelectedAddress({
+                      ...selectedAddress,
+                      estado: e.target.value
+                    })}
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Telefone</FormLabel>
+                  <Input
+                    value={selectedAddress.telefone}
+                    onChange={(e) => setSelectedAddress({
+                      ...selectedAddress,
+                      telefone: e.target.value
+                    })}
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Latitude</FormLabel>
+                  <Input
+                    type="number"
+                    step="0.000001"
+                    value={selectedAddress.latitude || ''}
+                    onChange={(e) => setSelectedAddress({
+                      ...selectedAddress,
+                      latitude: e.target.value ? Number(e.target.value) : undefined
+                    })}
+                    placeholder="Ex: -23.550520"
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Longitude</FormLabel>
+                  <Input
+                    type="number"
+                    step="0.000001"
+                    value={selectedAddress.longitude || ''}
+                    onChange={(e) => setSelectedAddress({
+                      ...selectedAddress,
+                      longitude: e.target.value ? Number(e.target.value) : undefined
+                    })}
+                    placeholder="Ex: -46.633308"
+                  />
+                </FormControl>
+              </VStack>
+            )}
+          </ModalBody>
+
+          <ModalFooter>
+            <Button
+              colorScheme="blue"
+              mr={3}
+              onClick={() => handleSaveAddress(selectedAddress)}
+            >
+              Salvar
+            </Button>
+            <Button onClick={onAddressEditClose}>Cancelar</Button>
+          </ModalFooter>
         </ModalContent>
       </Modal>
     </PageContainer>
