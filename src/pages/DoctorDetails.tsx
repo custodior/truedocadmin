@@ -522,14 +522,14 @@ const DoctorDetails = () => {
     fetchDoctorDetails() // Refresh the data
   }
 
-  const handleViewComprovante = (url: string, arquivo: string) => {
+  const handleViewComprovante = (url: string) => {
     const isPdf = url.toLowerCase().endsWith('.pdf')
     const filename = url.split('/').pop() || ''
     setSelectedComprovante({ url, isPdf, filename })
     onComprovanteOpen()
   }
 
-  const handleViewComprovanteFormacao = (url: string, arquivo: string) => {
+  const handleViewComprovanteFormacao = (url: string) => {
     const isPdf = url.toLowerCase().endsWith('.pdf')
     const filename = url.split('/').pop() || ''
     setSelectedComprovanteFormacao({ url, isPdf, filename })
@@ -1191,7 +1191,7 @@ const DoctorDetails = () => {
                         <Box key={comprovante.id} w="100%">
                           <Button
                             leftIcon={<FiFileText />}
-                            onClick={() => handleViewComprovante(comprovante.arquivo, comprovante.arquivo.split('/').pop() || '')}
+                            onClick={() => handleViewComprovante(comprovante.arquivo)}
                             colorScheme="blue"
                             variant="outline"
                             size="md"
@@ -1273,7 +1273,7 @@ const DoctorDetails = () => {
                         <Box key={comprovante.id} w="100%">
                           <Button
                             leftIcon={<FiFileText />}
-                            onClick={() => handleViewComprovanteFormacao(comprovante.arquivo, comprovante.arquivo.split('/').pop() || '')}
+                            onClick={() => handleViewComprovanteFormacao(comprovante.arquivo)}
                             colorScheme="blue"
                             variant="outline"
                             size="md"

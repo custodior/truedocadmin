@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react'
+import { ReactNode } from 'react'
 import {
   Box,
   Flex,
@@ -7,7 +7,7 @@ import {
   Text,
   useColorModeValue,
   BoxProps,
-  Heading,
+  FlexProps,
 } from '@chakra-ui/react'
 import { Link, useLocation } from 'react-router-dom'
 import { IconType } from 'react-icons'
@@ -21,6 +21,7 @@ import {
 import { BsFillPersonLinesFill } from 'react-icons/bs'
 import { MdDashboard } from 'react-icons/md'
 import { motion } from 'framer-motion'
+import Navbar from './Navbar'
 
 const MotionBox = motion(Box)
 const MotionFlex = motion(Flex)
