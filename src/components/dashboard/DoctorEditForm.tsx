@@ -42,9 +42,7 @@ export interface DoctorFormData {
   diploma?: string
   rqe?: string
   new_rqe?: string
-  faculdade?: {
-    nome: string
-  }
+  faculdade_id?: string
   faculdade_outro?: string
   forma_contato?: ContactFormType
   contato?: string
@@ -108,6 +106,11 @@ interface Convenio {
   nome: string
 }
 
+interface Faculdade {
+  id: string
+  nome: string
+}
+
 const CONTACT_FORM_OPTIONS = ['whatsapp', 'site', 'instagram', 'telefone'] as const;
 
 const DoctorEditForm: React.FC<DoctorEditFormProps> = ({
@@ -118,6 +121,7 @@ const DoctorEditForm: React.FC<DoctorEditFormProps> = ({
   const [formData, setFormData] = React.useState<DoctorFormData>(doctor)
   const [isLoading, setIsLoading] = React.useState(false)
   const [availableConvenios, setAvailableConvenios] = React.useState<Convenio[]>([])
+  const [availableFaculdades, setAvailableFaculdades] = React.useState<Faculdade[]>([])
   const [selectedConvenios, setSelectedConvenios] = React.useState<string[]>(
     doctor.convenios.map(c => c.nome)
   )
@@ -125,6 +129,7 @@ const DoctorEditForm: React.FC<DoctorEditFormProps> = ({
 
   React.useEffect(() => {
     fetchConvenios()
+    fetchFaculdades()
   }, [])
 
   const fetchConvenios = async () => {
@@ -142,6 +147,28 @@ const DoctorEditForm: React.FC<DoctorEditFormProps> = ({
       toast({
         title: 'Erro ao carregar convênios',
         description: 'Não foi possível carregar a lista de convênios.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      })
+    }
+  }
+
+  const fetchFaculdades = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('faculdade')
+        .select('id, nome')
+        .order('nome')
+
+      if (error) throw error
+
+      setAvailableFaculdades(data || [])
+    } catch (err) {
+      console.error('Error fetching faculdades:', err)
+      toast({
+        title: 'Erro ao carregar faculdades',
+        description: 'Não foi possível carregar a lista de faculdades.',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -193,6 +220,7 @@ const DoctorEditForm: React.FC<DoctorEditFormProps> = ({
           descricao: formData.descricao,
           rqe: formData.rqe,
           new_rqe: formData.new_rqe,
+          faculdade_id: formData.faculdade_id,
           faculdade_outro: formData.faculdade_outro,
           forma_contato: formData.forma_contato,
           contato: formData.contato,
@@ -328,6 +356,23 @@ const DoctorEditForm: React.FC<DoctorEditFormProps> = ({
                     value={formData.new_rqe || ''}
                     onChange={handleInputChange}
                   />
+                </FormControl>
+              </GridItem>
+              <GridItem>
+                <FormControl>
+                  <FormLabel>Faculdade</FormLabel>
+                  <Select
+                    name="faculdade_id"
+                    value={formData.faculdade_id || ''}
+                    onChange={handleInputChange}
+                  >
+                    <option value="">Selecione uma faculdade</option>
+                    {availableFaculdades.map(faculdade => (
+                      <option key={faculdade.id} value={faculdade.id}>
+                        {faculdade.nome}
+                      </option>
+                    ))}
+                  </Select>
                 </FormControl>
               </GridItem>
               <GridItem>

@@ -56,6 +56,23 @@ const Auth = () => {
       if (error) throw error
 
       if (data.session) {
+        // Check if user is a moderator
+        const { data: medicoData, error: medicoError } = await supabase
+          .from('medico')
+          .select('moderador')
+          .eq('email', email)
+          .single()
+
+        if (medicoError) {
+          throw new Error('Error checking moderator status')
+        }
+
+        if (!medicoData?.moderador) {
+          // Sign out if not a moderator
+          await supabase.auth.signOut()
+          throw new Error('Acesso não autorizado. Apenas moderadores podem acessar o painel.')
+        }
+
         setSession(data.session)
         navigate('/dashboard')
       }
@@ -67,6 +84,8 @@ const Auth = () => {
         duration: 5000,
         isClosable: true,
       })
+      // Sign out if there was an error
+      await supabase.auth.signOut()
     } finally {
       setLoading(false)
     }

@@ -116,7 +116,7 @@ const Instituicoes = () => {
       setTotalInstituicoes(total)
       setError(null)
     } catch (err) {
-      setError('Error loading residency institutions')
+      setError('Erro ao carregar instituições')
       console.error('Error fetching instituicoes:', err)
     } finally {
       setIsLoading(false)
@@ -135,14 +135,14 @@ const Instituicoes = () => {
       if (selectedInstituicao) {
         await updateInstituicao(selectedInstituicao.id, formData)
         toast({
-          title: 'Residency institution updated successfully',
+          title: 'Instituição atualizada com sucesso',
           status: 'success',
           duration: 3000,
         })
       } else {
         await createInstituicao(formData)
         toast({
-          title: 'Residency institution created successfully',
+          title: 'Instituição criada com sucesso',
           status: 'success',
           duration: 3000,
         })
@@ -153,7 +153,7 @@ const Instituicoes = () => {
       fetchInstituicoes()
     } catch (err) {
       toast({
-        title: `Error ${selectedInstituicao ? 'updating' : 'creating'} residency institution`,
+        title: `Erro ao ${selectedInstituicao ? 'atualizar' : 'criar'} instituição`,
         status: 'error',
         duration: 3000,
       })
@@ -167,18 +167,18 @@ const Instituicoes = () => {
   }
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this residency institution?')) {
+    if (window.confirm('Tem certeza que deseja excluir esta instituição?')) {
       try {
         await deleteInstituicao(id)
         toast({
-          title: 'Residency institution deleted successfully',
+          title: 'Instituição excluída com sucesso',
           status: 'success',
           duration: 3000,
         })
         fetchInstituicoes()
       } catch (err) {
         toast({
-          title: 'Error deleting residency institution',
+          title: 'Erro ao excluir instituição',
           status: 'error',
           duration: 3000,
         })
@@ -196,8 +196,8 @@ const Instituicoes = () => {
 
   return (
     <PageContainer
-      title="Residency Institutions"
-      description="Manage medical residency institutions"
+      title="Instituições"
+      description="Gerencie instituições de residência médica"
     >
       <HStack mb={6} spacing={4}>
         <InputGroup maxW="xs">
@@ -205,7 +205,7 @@ const Instituicoes = () => {
             <FiSearch />
           </InputLeftElement>
           <Input
-            placeholder="Search by name..."
+            placeholder="Pesquisar por nome..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             bg={useColorModeValue('white', 'gray.800')}
@@ -223,7 +223,7 @@ const Instituicoes = () => {
           borderRadius="lg"
           px={6}
         >
-          New Institution
+          Nova Instituição
         </Button>
       </HStack>
 
@@ -251,7 +251,7 @@ const Instituicoes = () => {
                 cursor="pointer" 
                 onClick={() => handleSort('nome')}
               >
-                Name {sort.column === 'nome' && (sort.direction === 'asc' ? '↑' : '↓')}
+                Nome {sort.column === 'nome' && (sort.direction === 'asc' ? '↑' : '↓')}
               </Th>
               <Th></Th>
             </Tr>
@@ -266,7 +266,7 @@ const Instituicoes = () => {
             ) : instituicoes.length === 0 ? (
               <Tr>
                 <Td colSpan={2} textAlign="center" py={10}>
-                  No residency institutions found
+                  Nenhuma instituição encontrada
                 </Td>
               </Tr>
             ) : (
@@ -287,13 +287,13 @@ const Instituicoes = () => {
                           icon={<FiEdit />}
                           onClick={() => handleEdit(instituicao)}
                         >
-                          Edit
+                          Editar
                         </MenuItem>
                         <MenuItem 
                           color="red.500" 
                           onClick={() => handleDelete(instituicao.id)}
                         >
-                          Remove
+                          Remover
                         </MenuItem>
                       </MenuList>
                     </Menu>
@@ -307,21 +307,21 @@ const Instituicoes = () => {
         {/* Pagination */}
         <Flex justify="space-between" align="center" px={6} py={4}>
           <Text color="gray.600">
-            {totalInstituicoes} residency institutions found
+            {totalInstituicoes} instituições encontradas
           </Text>
           <HStack spacing={2}>
             <IconButton
               icon={<FiChevronLeft />}
-              aria-label="Previous page"
+              aria-label="Página anterior"
               disabled={currentPage === 0}
               onClick={() => setCurrentPage(currentPage - 1)}
             />
             <Text>
-              Page {currentPage + 1} of {totalPages}
+              Página {currentPage + 1} de {totalPages}
             </Text>
             <IconButton
               icon={<FiChevronRight />}
-              aria-label="Next page"
+              aria-label="Próxima página"
               disabled={currentPage >= totalPages - 1}
               onClick={() => setCurrentPage(currentPage + 1)}
             />
@@ -334,17 +334,17 @@ const Instituicoes = () => {
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>
-            {selectedInstituicao ? 'Edit Institution' : 'New Institution'}
+            {selectedInstituicao ? 'Editar Instituição' : 'Nova Instituição'}
           </ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
             <VStack spacing={4}>
               <FormControl>
-                <FormLabel>Name</FormLabel>
+                <FormLabel>Nome</FormLabel>
                 <Input
                   value={formData.nome}
                   onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                  placeholder="Institution name"
+                  placeholder="Nome da instituição"
                 />
               </FormControl>
 
@@ -357,7 +357,7 @@ const Instituicoes = () => {
                   bgGradient: `linear(to-r, ${customColors.primaryDark}, ${customColors.secondaryDark})`,
                 }}
               >
-                {selectedInstituicao ? 'Update' : 'Create'}
+                {selectedInstituicao ? 'Atualizar' : 'Criar'}
               </Button>
             </VStack>
           </ModalBody>

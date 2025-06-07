@@ -52,22 +52,22 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
 }) => (
   <Flex justify="space-between" align="center" mt={4}>
     <Text color="gray.600" fontSize="sm">
-      {totalItems} items
+      {totalItems} itens
     </Text>
     <HStack spacing={2}>
       <IconButton
         icon={<FiChevronLeft />}
-        aria-label="Previous page"
+        aria-label="Página anterior"
         disabled={currentPage === 0}
         onClick={() => onPageChange(currentPage - 1)}
         size="sm"
       />
       <Text fontSize="sm">
-        Page {currentPage + 1} of {Math.max(1, totalPages)}
+        Página {currentPage + 1} de {Math.max(1, totalPages)}
       </Text>
       <IconButton
         icon={<FiChevronRight />}
-        aria-label="Next page"
+        aria-label="Próxima página"
         disabled={currentPage >= totalPages - 1}
         onClick={() => onPageChange(currentPage + 1)}
         size="sm"
@@ -104,7 +104,7 @@ const Especialidades = () => {
       setEspecialidades(data)
       setError(null)
     } catch (err) {
-      setError('Error loading medical specialties')
+      setError('Erro ao carregar especialidades')
       console.error('Error fetching especialidades:', err)
     } finally {
       setIsLoading(false)
@@ -136,8 +136,8 @@ const Especialidades = () => {
   if (isLoading) {
     return (
       <PageContainer
-        title="Medical Specialties"
-        description="View all medical specialties"
+        title="Especialidades"
+        description="Visualize todas as especialidades médicas"
       >
         <Box display="flex" justifyContent="center" alignItems="center" height="200px">
           <Spinner color={customColors.primary} size="xl" />
@@ -149,8 +149,8 @@ const Especialidades = () => {
   if (error) {
     return (
       <PageContainer
-        title="Medical Specialties"
-        description="View all medical specialties"
+        title="Especialidades"
+        description="Visualize todas as especialidades médicas"
       >
         <Alert status="error" borderRadius="lg">
           <AlertIcon />
@@ -162,8 +162,8 @@ const Especialidades = () => {
 
   return (
     <PageContainer
-      title="Medical Specialties"
-      description="View all medical specialties"
+      title="Especialidades"
+      description="Visualize todas as especialidades médicas"
     >
       {/* Search Bar */}
       <Box mb={6}>
@@ -172,7 +172,7 @@ const Especialidades = () => {
             <FiSearch />
           </InputLeftElement>
           <Input
-            placeholder="Search specialties..."
+            placeholder="Pesquisar especialidades..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             bg={useColorModeValue('white', 'gray.800')}
@@ -196,7 +196,7 @@ const Especialidades = () => {
         >
           <VStack align="stretch" spacing={4}>
             <Heading size="md" color={customColors.primary}>
-              Primary Specialties
+              Especialidade Acesso Direto
               <Badge ml={2} colorScheme="green" fontSize="xs">
                 {directSpecialties.length}
               </Badge>
@@ -219,7 +219,7 @@ const Especialidades = () => {
               ))}
               {directSpecialtiesPage.length === 0 && (
                 <ListItem p={3} textAlign="center" color="gray.500">
-                  No specialties found
+                  Nenhuma especialidade encontrada
                 </ListItem>
               )}
             </List>
@@ -246,7 +246,7 @@ const Especialidades = () => {
         >
           <VStack align="stretch" spacing={4}>
             <Heading size="md" color={customColors.secondary}>
-              Subspecialties
+              Especialidades com pré requisito
               <Badge ml={2} colorScheme="purple" fontSize="xs">
                 {subspecialties.length}
               </Badge>
@@ -269,7 +269,7 @@ const Especialidades = () => {
               ))}
               {subspecialtiesPage.length === 0 && (
                 <ListItem p={3} textAlign="center" color="gray.500">
-                  No subspecialties found
+                  Nenhuma subespecialidade encontrada
                 </ListItem>
               )}
             </List>

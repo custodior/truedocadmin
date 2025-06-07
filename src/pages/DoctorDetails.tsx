@@ -35,6 +35,8 @@ import {
   WrapItem,
   Input,
   ModalFooter,
+  Select,
+  FormErrorMessage,
 } from '@chakra-ui/react'
 import { supabase } from '../lib/supabaseClient'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -77,6 +79,7 @@ interface SupabaseDoctor {
   diploma?: string
   rqe?: string
   new_rqe?: string
+  faculdade_id?: string
   faculdade?: {
     nome: string
   }
@@ -138,6 +141,35 @@ interface SupabaseDoctor {
   }>
 }
 
+interface Especialidade {
+  id: string;
+  nome: string;
+  instituicao_residencia?: {
+    nome: string;
+  };
+  instituicao_residencia_outra?: string;
+  aprovado: boolean;
+  show_profile: boolean;
+}
+
+interface Subespecialidade {
+  id: string;
+  subespecialidade_nome: string;
+  instituicao_residencia?: {
+    nome: string;
+  };
+  instituicao_residencia_outra?: string;
+  aprovado: boolean;
+}
+
+interface FormacaoOutros {
+  id: string;
+  nome: string;
+  instituicao?: string;
+  aprovado: boolean;
+  show_profile: boolean;
+}
+
 interface DoctorFormData {
   id: string
   nome: string
@@ -151,6 +183,7 @@ interface DoctorFormData {
   diploma?: string
   rqe?: string
   new_rqe?: string
+  faculdade_id?: string
   faculdade?: {
     nome: string
   }
@@ -164,31 +197,9 @@ interface DoctorFormData {
   twitter?: string
   teleconsulta?: boolean
   convenio_outro?: string
-  especialidades: Array<{
-    id: string
-    nome: string
-    instituicao_residencia?: {
-      nome: string
-    }
-    instituicao_residencia_outra?: string
-    show_profile: boolean
-    aprovado: boolean
-  }>
-  subespecialidades: Array<{
-    id: string
-    subespecialidade_nome: string
-    instituicao_residencia?: {
-      nome: string
-    }
-    instituicao_residencia_outra?: string
-    aprovado: boolean
-  }>
-  formacao_outros: Array<{
-    id: string
-    nome: string
-    show_profile: boolean
-    aprovado: boolean
-  }>
+  especialidades: Especialidade[]
+  subespecialidades: Subespecialidade[]
+  formacao_outros: FormacaoOutros[]
   convenios: Array<{ nome: string }>
   localizacoes: Array<{
     id: string
@@ -206,6 +217,22 @@ interface DoctorFormData {
   }>
 }
 
+interface InstituicaoResidencia {
+  id: string;
+  nome: string;
+}
+
+interface EditEspecialidadeFormData {
+  instituicao_residencia_id?: string;
+  instituicao_residencia_outra?: string;
+}
+
+interface ComprovanteFormacaoOutros {
+  id: string
+  medico_id: string
+  arquivo: string
+}
+
 const DoctorDetails = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -217,13 +244,21 @@ const DoctorDetails = () => {
   const [isPdfDiploma, setIsPdfDiploma] = React.useState(false)
   const [isEditing, setIsEditing] = React.useState(false)
   const [comprovantes, setComprovantes] = React.useState<ComprovanteEspecialidade[]>([])
+  const [comprovanteFormacaoOutros, setComprovanteFormacaoOutros] = React.useState<ComprovanteFormacaoOutros[]>([])
   const [comprovanteUrls, setComprovanteUrls] = React.useState<{ [key: string]: string }>({})
+  const [comprovanteFormacaoOutrosUrls, setComprovanteFormacaoOutrosUrls] = React.useState<{ [key: string]: string }>({})
   const { isOpen: isDiplomaOpen, onOpen: onDiplomaOpen, onClose: onDiplomaClose } = useDisclosure()
   const { isOpen: isComprovanteOpen, onOpen: onComprovanteOpen, onClose: onComprovanteClose } = useDisclosure()
+  const { isOpen: isComprovanteFormacaoOpen, onOpen: onComprovanteFormacaoOpen, onClose: onComprovanteFormacaoClose } = useDisclosure()
   const { isOpen: isAddressEditOpen, onOpen: onAddressEditOpen, onClose: onAddressEditClose } = useDisclosure()
   const [selectedComprovante, setSelectedComprovante] = React.useState<{url: string, isPdf: boolean, filename: string} | null>(null)
+  const [selectedComprovanteFormacao, setSelectedComprovanteFormacao] = React.useState<{url: string, isPdf: boolean, filename: string} | null>(null)
   const [selectedAddress, setSelectedAddress] = React.useState<DoctorFormData['localizacoes'][0] | null>(null)
   const toast = useToast()
+  const [selectedEspecialidade, setSelectedEspecialidade] = React.useState<Especialidade | null>(null)
+  const [instituicoes, setInstituicoes] = React.useState<InstituicaoResidencia[]>([])
+  const [isLoadingInstituicoes, setIsLoadingInstituicoes] = React.useState(false)
+  const { isOpen: isEditEspecialidadeOpen, onOpen: onEditEspecialidadeOpen, onClose: onEditEspecialidadeClose } = useDisclosure()
 
   const bgColor = useColorModeValue('white', 'gray.800')
   const borderColor = useColorModeValue('gray.200', 'gray.700')
@@ -232,6 +267,7 @@ const DoctorDetails = () => {
     if (id) {
       fetchDoctorDetails()
       fetchComprovantes()
+      fetchComprovantesFormacaoOutros()
     }
   }, [id])
 
@@ -255,6 +291,15 @@ const DoctorDetails = () => {
     setComprovanteUrls(urls)
   }, [comprovantes])
 
+  // Add useEffect to get comprovante formacao outros URLs
+  React.useEffect(() => {
+    const urls: { [key: string]: string } = {}
+    for (const comprovante of comprovanteFormacaoOutros) {
+      urls[comprovante.id] = comprovante.arquivo
+    }
+    setComprovanteFormacaoOutrosUrls(urls)
+  }, [comprovanteFormacaoOutros])
+
   const fetchDoctorDetails = async () => {
     try {
       setLoading(true)
@@ -274,6 +319,7 @@ const DoctorDetails = () => {
           diploma,
           rqe,
           new_rqe,
+          faculdade_id,
           faculdade:faculdade_id (nome),
           faculdade_outro,
           forma_contato,
@@ -345,6 +391,7 @@ const DoctorDetails = () => {
           diploma: data.diploma,
           rqe: data.rqe,
           new_rqe: data.new_rqe,
+          faculdade_id: data.faculdade_id,
           faculdade: data.faculdade,
           faculdade_outro: data.faculdade_outro,
           forma_contato: data.forma_contato as ContactFormType,
@@ -429,6 +476,27 @@ const DoctorDetails = () => {
     }
   }
 
+  const fetchComprovantesFormacaoOutros = async () => {
+    try {
+      console.log('Fetching comprovantes formacao outros for doctor:', id)
+      const { data, error } = await supabase
+        .from('comprovante_formacao_outros')
+        .select('id, medico_id, arquivo')
+        .eq('medico_id', id)
+
+      if (error) {
+        console.error('Error fetching comprovantes formacao outros:', error)
+        throw error
+      }
+
+      console.log('Fetched comprovantes formacao outros:', data)
+      setComprovanteFormacaoOutros(data || [])
+    } catch (err) {
+      console.error('Error in fetchComprovantesFormacaoOutros:', err)
+      setError(err instanceof Error ? err.message : 'Error fetching comprovantes formacao outros')
+    }
+  }
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR')
   }
@@ -459,6 +527,13 @@ const DoctorDetails = () => {
     const filename = url.split('/').pop() || ''
     setSelectedComprovante({ url, isPdf, filename })
     onComprovanteOpen()
+  }
+
+  const handleViewComprovanteFormacao = (url: string, arquivo: string) => {
+    const isPdf = url.toLowerCase().endsWith('.pdf')
+    const filename = url.split('/').pop() || ''
+    setSelectedComprovanteFormacao({ url, isPdf, filename })
+    onComprovanteFormacaoOpen()
   }
 
   const handleApproveEspecialidade = async (especialidadeId: string, currentStatus: boolean) => {
@@ -634,6 +709,205 @@ const DoctorDetails = () => {
     }
   }
 
+  const handleToggleShowProfile = async (type: 'especialidade' | 'formacao', id: string, currentStatus: boolean) => {
+    try {
+      let table: string;
+      switch (type) {
+        case 'especialidade':
+          table = 'medico_especialidade_residencia';
+          break;
+        case 'formacao':
+          table = 'formacao_outros';
+          break;
+      }
+
+      const { error } = await supabase
+        .from(table)
+        .update({ show_profile: !currentStatus })
+        .eq('id', id)
+
+      if (error) throw error
+
+      // Update local state
+      if (doctor) {
+        setDoctor({
+          ...doctor,
+          especialidades: type === 'especialidade' 
+            ? doctor.especialidades.map(esp => 
+                esp.id === id 
+                  ? { ...esp, show_profile: !currentStatus }
+                  : esp
+              )
+            : doctor.especialidades,
+          formacao_outros: type === 'formacao'
+            ? doctor.formacao_outros.map(form =>
+                form.id === id
+                  ? { ...form, show_profile: !currentStatus }
+                  : form
+              )
+            : doctor.formacao_outros
+        })
+      }
+
+      toast({
+        title: `${!currentStatus ? 'Exibindo' : 'Ocultando'} no perfil`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      })
+    } catch (err) {
+      console.error('Error updating show_profile:', err)
+      toast({
+        title: 'Erro ao atualizar exibição no perfil',
+        description: err instanceof Error ? err.message : 'Erro desconhecido',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+    }
+  }
+
+  const fetchInstituicoes = async () => {
+    try {
+      setIsLoadingInstituicoes(true);
+      const { data, error } = await supabase
+        .from('instituicao_residencia')
+        .select('id, nome')
+        .order('nome');
+
+      if (error) throw error;
+
+      setInstituicoes(data || []);
+    } catch (err) {
+      console.error('Error fetching instituicoes:', err);
+      toast({
+        title: 'Erro ao carregar instituições',
+        description: err instanceof Error ? err.message : 'Erro desconhecido',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoadingInstituicoes(false);
+    }
+  };
+
+  const handleUpdateEspecialidade = async (formData: EditEspecialidadeFormData) => {
+    if (!selectedEspecialidade) return;
+
+    try {
+      const { error } = await supabase
+        .from('medico_especialidade_residencia')
+        .update({
+          instituicao_residencia_id: formData.instituicao_residencia_id || null,
+          instituicao_residencia_outra: formData.instituicao_residencia_outra || null,
+        })
+        .eq('id', selectedEspecialidade.id);
+
+      if (error) throw error;
+
+      // Update local state
+      if (doctor) {
+        setDoctor({
+          ...doctor,
+          especialidades: doctor.especialidades.map(esp =>
+            esp.id === selectedEspecialidade.id
+              ? {
+                  ...esp,
+                  instituicao_residencia: formData.instituicao_residencia_id
+                    ? instituicoes.find(i => i.id === formData.instituicao_residencia_id)
+                    : undefined,
+                  instituicao_residencia_outra: formData.instituicao_residencia_outra || undefined,
+                }
+              : esp
+          ),
+        });
+      }
+
+      toast({
+        title: 'Especialidade atualizada com sucesso',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+
+      onEditEspecialidadeClose();
+    } catch (err) {
+      console.error('Error updating especialidade:', err);
+      toast({
+        title: 'Erro ao atualizar especialidade',
+        description: err instanceof Error ? err.message : 'Erro desconhecido',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  // Add this function to handle adding new institution
+  const handleAddNewInstitution = async (institutionName: string) => {
+    try {
+      // First check if institution already exists
+      const { data: existingInst, error: checkError } = await supabase
+        .from('instituicao_residencia')
+        .select('id')
+        .ilike('nome', institutionName)
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') throw checkError;
+      
+      if (existingInst) {
+        toast({
+          title: 'Instituição já existe',
+          description: 'Esta instituição já está cadastrada no sistema.',
+          status: 'warning',
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      // Add new institution
+      const { data, error } = await supabase
+        .from('instituicao_residencia')
+        .insert([{ nome: institutionName }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Update local state
+      setInstituicoes(prev => [...prev, data]);
+
+      toast({
+        title: 'Instituição adicionada com sucesso',
+        description: 'A instituição foi adicionada à lista de instituições.',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+
+      // Return the new institution id
+      return data.id;
+    } catch (err) {
+      console.error('Error adding new institution:', err);
+      toast({
+        title: 'Erro ao adicionar instituição',
+        description: err instanceof Error ? err.message : 'Erro desconhecido',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return null;
+    }
+  };
+
+  React.useEffect(() => {
+    if (isEditEspecialidadeOpen) {
+      fetchInstituicoes();
+    }
+  }, [isEditEspecialidadeOpen]);
+
   if (error) {
     return (
       <PageContainer title="Detalhes do Médico">
@@ -791,159 +1065,225 @@ const DoctorDetails = () => {
               <Divider />
 
               {/* Especialidades */}
-              <Box>
-                <Text fontSize="lg" fontWeight="semibold" mb={3}>Especialidades</Text>
-                {doctor.especialidades.length > 0 ? (
-                  <VStack align="start" spacing={4}>
-                    {doctor.especialidades.map((esp, index) => (
-                      <Box key={esp.id} w="100%">
-                        <HStack spacing={2} mb={2} justify="space-between">
-                          <HStack spacing={2}>
-                            <Text fontWeight="medium">{esp.nome}</Text>
-                            <Badge colorScheme={esp.aprovado ? 'green' : 'orange'}>
-                              {esp.aprovado ? 'Aprovada' : 'Pendente'}
-                            </Badge>
-                            {esp.show_profile && (
-                              <Badge colorScheme="blue">Exibir no Perfil</Badge>
+              {doctor.especialidades.length > 0 && (
+                <>
+                  <Divider />
+                  <Box>
+                    <Text fontSize="lg" fontWeight="semibold" mb={3}>Especialidades</Text>
+                    <VStack align="start" spacing={4}>
+                      {doctor.especialidades.map((especialidade) => (
+                        <Box key={especialidade.id} w="100%">
+                          <VStack align="start" spacing={2} w="100%">
+                            <HStack spacing={2} justify="space-between" w="100%">
+                              <HStack spacing={2}>
+                                <Text fontWeight="medium">{especialidade.nome}</Text>
+                                <Badge colorScheme={especialidade.aprovado ? 'green' : 'orange'}>
+                                  {especialidade.aprovado ? 'Aprovada' : 'Pendente'}
+                                </Badge>
+                                {especialidade.show_profile && (
+                                  <Badge colorScheme="blue">Exibir no Perfil</Badge>
+                                )}
+                              </HStack>
+                              <HStack spacing={4} align="center">
+                                <IconButton
+                                  aria-label="Editar especialidade"
+                                  icon={<FiEdit />}
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedEspecialidade(especialidade);
+                                    onEditEspecialidadeOpen();
+                                  }}
+                                />
+                                <HStack spacing={2} align="center">
+                                  <Text fontSize="sm" color="gray.600">Exibir no Perfil</Text>
+                                  <Switch
+                                    isChecked={especialidade.show_profile}
+                                    onChange={() => handleToggleShowProfile('especialidade', especialidade.id, especialidade.show_profile)}
+                                    colorScheme="blue"
+                                    size="lg"
+                                  />
+                                </HStack>
+                                <HStack spacing={2} align="center">
+                                  <Text fontSize="sm" color="gray.600">Aprovar</Text>
+                                  <Switch
+                                    isChecked={especialidade.aprovado}
+                                    onChange={() => handleApproveEspecialidade(especialidade.id, especialidade.aprovado)}
+                                    colorScheme="green"
+                                    size="lg"
+                                  />
+                                </HStack>
+                              </HStack>
+                            </HStack>
+                            {especialidade.instituicao_residencia_outra && (
+                              <HStack spacing={2}>
+                                <Text color="gray.600" fontSize="sm">
+                                  Instituição: {especialidade.instituicao_residencia_outra}
+                                </Text>
+                                <Badge colorScheme="yellow">Instituição não listada</Badge>
+                              </HStack>
                             )}
-                          </HStack>
-                          <HStack spacing={2} align="center">
-                            <Text fontSize="sm" color="gray.600">Aprovar</Text>
-                            <Switch
-                              isChecked={esp.aprovado}
-                              onChange={() => handleApproveEspecialidade(esp.id, esp.aprovado)}
-                              colorScheme="green"
-                              size="lg"
-                            />
-                          </HStack>
-                        </HStack>
-                        {esp.instituicao_residencia && (
-                          <Text color="gray.600" fontSize="sm">
-                            Instituição: {esp.instituicao_residencia.nome}
-                          </Text>
-                        )}
-                        {esp.instituicao_residencia_outra && (
-                          <Text color="gray.600" fontSize="sm">
-                            Instituição: {esp.instituicao_residencia_outra}
-                          </Text>
-                        )}
-                      </Box>
-                    ))}
-                  </VStack>
-                ) : (
-                  <Text color="gray.500">Nenhuma especialidade cadastrada</Text>
-                )}
-              </Box>
-
-              <Divider />
+                            {especialidade.instituicao_residencia && (
+                              <Text color="gray.600" fontSize="sm">
+                                Instituição: {especialidade.instituicao_residencia.nome}
+                              </Text>
+                            )}
+                          </VStack>
+                        </Box>
+                      ))}
+                    </VStack>
+                  </Box>
+                </>
+              )}
 
               {/* Subespecialidades */}
-              <Box>
-                <Text fontSize="lg" fontWeight="semibold" mb={3}>Subespecialidades</Text>
-                {doctor.subespecialidades.length > 0 ? (
-                  <VStack align="start" spacing={4}>
-                    {doctor.subespecialidades.map((sub) => (
-                      <Box key={sub.id} w="100%">
-                        <HStack spacing={2} mb={2} justify="space-between">
-                          <HStack spacing={2}>
-                            <Text fontWeight="medium">{sub.subespecialidade_nome}</Text>
-                            <Badge colorScheme={sub.aprovado ? 'green' : 'orange'}>
-                              {sub.aprovado ? 'Aprovada' : 'Pendente'}
-                            </Badge>
-                          </HStack>
-                          <HStack spacing={2} align="center">
-                            <Text fontSize="sm" color="gray.600">Aprovar</Text>
-                            <Switch
-                              isChecked={sub.aprovado}
-                              onChange={() => handleApproveSubespecialidade(sub.id, sub.aprovado)}
-                              colorScheme="green"
-                              size="lg"
-                            />
-                          </HStack>
-                        </HStack>
-                        {sub.instituicao_residencia && (
-                          <Text color="gray.600" fontSize="sm">
-                            Instituição: {sub.instituicao_residencia.nome}
-                          </Text>
-                        )}
-                        {sub.instituicao_residencia_outra && (
-                          <Text color="gray.600" fontSize="sm">
-                            Instituição: {sub.instituicao_residencia_outra}
-                          </Text>
-                        )}
-                      </Box>
-                    ))}
-                  </VStack>
-                ) : (
-                  <Text color="gray.500">Nenhuma subespecialidade cadastrada</Text>
-                )}
-              </Box>
+              {doctor.subespecialidades.length > 0 && (
+                <>
+                  <Divider />
+                  <Box>
+                    <Text fontSize="lg" fontWeight="semibold" mb={3}>Subespecialidades</Text>
+                    <VStack align="start" spacing={4}>
+                      {doctor.subespecialidades.map((subespecialidade) => (
+                        <Box key={subespecialidade.id} w="100%">
+                          <VStack align="start" spacing={2} w="100%">
+                            <HStack spacing={2} justify="space-between" w="100%">
+                              <HStack spacing={2}>
+                                <Text fontWeight="medium">{subespecialidade.subespecialidade_nome}</Text>
+                                <Badge colorScheme={subespecialidade.aprovado ? 'green' : 'orange'}>
+                                  {subespecialidade.aprovado ? 'Aprovada' : 'Pendente'}
+                                </Badge>
+                              </HStack>
+                              <HStack spacing={2} align="center">
+                                <Text fontSize="sm" color="gray.600">Aprovar</Text>
+                                <Switch
+                                  isChecked={subespecialidade.aprovado}
+                                  onChange={() => handleApproveSubespecialidade(subespecialidade.id, subespecialidade.aprovado)}
+                                  colorScheme="green"
+                                  size="lg"
+                                />
+                              </HStack>
+                            </HStack>
+                            {subespecialidade.instituicao_residencia && (
+                              <Text color="gray.600">
+                                Instituição: {subespecialidade.instituicao_residencia.nome}
+                              </Text>
+                            )}
+                            {subespecialidade.instituicao_residencia_outra && (
+                              <Text color="gray.600">
+                                Instituição: {subespecialidade.instituicao_residencia_outra}
+                              </Text>
+                            )}
+                          </VStack>
+                        </Box>
+                      ))}
+                    </VStack>
+                  </Box>
+                </>
+              )}
 
-              <Divider />
-
-              {/* Comprovantes Section */}
-              <Box>
-                <Text fontSize="lg" fontWeight="semibold" mb={3}>
-                  Comprovantes Especialidade e Subespecialidades
-                </Text>
-                {comprovantes.length > 0 ? (
-                  <Wrap spacing={4}>
-                    {comprovantes.map((comprovante, index) => (
-                      comprovanteUrls[comprovante.id] && (
-                        <WrapItem key={comprovante.id}>
+              {/* Comprovantes */}
+              {comprovantes.length > 0 && (
+                <>
+                  <Divider />
+                  <Box>
+                    <Text fontSize="lg" fontWeight="semibold" mb={3}>Comprovantes</Text>
+                    <VStack align="start" spacing={4}>
+                      {comprovantes.map((comprovante, index) => (
+                        <Box key={comprovante.id} w="100%">
                           <Button
                             leftIcon={<FiFileText />}
-                            onClick={() => handleViewComprovante(comprovanteUrls[comprovante.id], comprovante.arquivo)}
+                            onClick={() => handleViewComprovante(comprovante.arquivo, comprovante.arquivo.split('/').pop() || '')}
                             colorScheme="blue"
                             variant="outline"
                             size="md"
                           >
-                            Ver Comprovante {index + 1}
+                            Ver comprovante {index + 1}
                           </Button>
-                        </WrapItem>
-                      )
-                    ))}
-                  </Wrap>
-                ) : (
-                  <Text color="gray.500">Nenhum comprovante cadastrado</Text>
-                )}
-              </Box>
-
-              <Divider />
+                        </Box>
+                      ))}
+                    </VStack>
+                  </Box>
+                </>
+              )}
 
               {/* Outras Formações */}
               {doctor.formacao_outros.length > 0 && (
                 <>
+                  <Divider />
                   <Box>
                     <Text fontSize="lg" fontWeight="semibold" mb={3}>Outras Formações</Text>
                     <VStack align="start" spacing={4}>
                       {doctor.formacao_outros.map((formacao) => (
                         <Box key={formacao.id} w="100%">
-                          <HStack spacing={2} justify="space-between">
-                            <HStack spacing={2}>
-                              <Text fontWeight="medium">{formacao.nome}</Text>
-                              <Badge colorScheme={formacao.aprovado ? 'green' : 'orange'}>
-                                {formacao.aprovado ? 'Aprovada' : 'Pendente'}
-                              </Badge>
-                              {formacao.show_profile && (
-                                <Badge colorScheme="blue">Exibir no Perfil</Badge>
-                              )}
+                          <VStack align="start" spacing={2} w="100%">
+                            <HStack spacing={2} justify="space-between" w="100%">
+                              <HStack spacing={2}>
+                                <Text fontWeight="medium">{formacao.nome}</Text>
+                                <Badge colorScheme={formacao.aprovado ? 'green' : 'orange'}>
+                                  {formacao.aprovado ? 'Aprovada' : 'Pendente'}
+                                </Badge>
+                                {formacao.show_profile && (
+                                  <Badge colorScheme="blue">Exibir no Perfil</Badge>
+                                )}
+                              </HStack>
+                              <HStack spacing={4} align="center">
+                                <HStack spacing={2} align="center">
+                                  <Text fontSize="sm" color="gray.600">Exibir no Perfil</Text>
+                                  <Switch
+                                    isChecked={formacao.show_profile}
+                                    onChange={() => handleToggleShowProfile('formacao', formacao.id, formacao.show_profile)}
+                                    colorScheme="blue"
+                                    size="lg"
+                                  />
+                                </HStack>
+                                <HStack spacing={2} align="center">
+                                  <Text fontSize="sm" color="gray.600">Aprovar</Text>
+                                  <Switch
+                                    isChecked={formacao.aprovado}
+                                    onChange={() => handleApproveFormacao(formacao.id, formacao.aprovado)}
+                                    colorScheme="green"
+                                    size="lg"
+                                  />
+                                </HStack>
+                              </HStack>
                             </HStack>
-                            <HStack spacing={2} align="center">
-                              <Text fontSize="sm" color="gray.600">Aprovar</Text>
-                              <Switch
-                                isChecked={formacao.aprovado}
-                                onChange={() => handleApproveFormacao(formacao.id, formacao.aprovado)}
-                                colorScheme="green"
-                                size="lg"
-                              />
-                            </HStack>
-                          </HStack>
+                            {formacao.instituicao && (
+                              <HStack spacing={2}>
+                                <Text color="gray.600" fontSize="sm">
+                                  Instituição: {formacao.instituicao}
+                                </Text>
+                                <Badge colorScheme="yellow">Instituição não listada</Badge>
+                              </HStack>
+                            )}
+                          </VStack>
                         </Box>
                       ))}
                     </VStack>
                   </Box>
+                </>
+              )}
+
+              {/* Comprovantes Formação Outros */}
+              {comprovanteFormacaoOutros.length > 0 && (
+                <>
                   <Divider />
+                  <Box>
+                    <Text fontSize="lg" fontWeight="semibold" mb={3}>Comprovantes de Outras Formações</Text>
+                    <VStack align="start" spacing={4}>
+                      {comprovanteFormacaoOutros.map((comprovante, index) => (
+                        <Box key={comprovante.id} w="100%">
+                          <Button
+                            leftIcon={<FiFileText />}
+                            onClick={() => handleViewComprovanteFormacao(comprovante.arquivo, comprovante.arquivo.split('/').pop() || '')}
+                            colorScheme="blue"
+                            variant="outline"
+                            size="md"
+                          >
+                            Ver comprovante {index + 1}
+                          </Button>
+                        </Box>
+                      ))}
+                    </VStack>
+                  </Box>
                 </>
               )}
 
@@ -1098,72 +1438,86 @@ const DoctorDetails = () => {
         </Center>
       )}
 
-      {/* Diploma Modal */}
-      <Modal isOpen={isDiplomaOpen} onClose={onDiplomaClose} size="6xl" isCentered>
+      {/* Modal for viewing comprovante */}
+      <Modal isOpen={isComprovanteOpen} onClose={onComprovanteClose} size="full">
         <ModalOverlay />
-        <ModalContent maxW="90vw" maxH="90vh">
-          <ModalHeader>Diploma de {doctor?.nome}</ModalHeader>
+        <ModalContent maxW="98vw" h="98vh" mx="auto" my="1vh">
+          <ModalHeader 
+            borderBottomWidth="1px" 
+            bg={useColorModeValue('gray.50', 'gray.800')}
+            borderTopRadius="md"
+            py={2}
+          >
+            Comprovante
+          </ModalHeader>
           <ModalCloseButton />
-          <ModalBody pb={6}>
-            {isPdfDiploma ? (
-              <iframe
-                src={diplomaUrl || ''}
-                style={{
-                  width: '100%',
-                  height: '80vh',
-                  border: 'none'
-                }}
-                title="Diploma PDF"
-              />
-            ) : (
-              <Image
-                src={diplomaUrl || undefined}
-                alt="Diploma do médico"
-                width="100%"
-                objectFit="contain"
-                maxH="80vh"
-                fallback={
-                  <Center p={8} bg="gray.100" borderRadius="lg">
-                    <Text color="gray.500">Erro ao carregar diploma</Text>
-                  </Center>
-                }
-              />
-            )}
+          <ModalBody 
+            p={0} 
+            display="flex" 
+            justifyContent="center" 
+            alignItems="center" 
+            bg={useColorModeValue('gray.100', 'gray.700')}
+            h="calc(98vh - 57px)" // 57px is the header height (48px) + border (1px)
+          >
+            <Box w="100%" h="100%" overflow="hidden">
+              {selectedComprovante?.isPdf ? (
+                <iframe 
+                  src={selectedComprovante.url} 
+                  width="100%" 
+                  height="100%" 
+                  style={{ border: 'none' }}
+                />
+              ) : (
+                <Image 
+                  src={selectedComprovante?.url} 
+                  height="100%"
+                  width="100%"
+                  objectFit="contain" 
+                />
+              )}
+            </Box>
           </ModalBody>
         </ModalContent>
       </Modal>
 
-      {/* Comprovante Modal */}
-      <Modal isOpen={isComprovanteOpen} onClose={onComprovanteClose} size="6xl" isCentered>
+      {/* Modal for viewing diploma */}
+      <Modal isOpen={isDiplomaOpen} onClose={onDiplomaClose} size="full">
         <ModalOverlay />
-        <ModalContent maxW="90vw" maxH="90vh">
-          <ModalHeader>{selectedComprovante?.filename}</ModalHeader>
+        <ModalContent maxW="98vw" h="98vh" mx="auto" my="1vh">
+          <ModalHeader 
+            borderBottomWidth="1px" 
+            bg={useColorModeValue('gray.50', 'gray.800')}
+            borderTopRadius="md"
+            py={2}
+          >
+            Diploma
+          </ModalHeader>
           <ModalCloseButton />
-          <ModalBody pb={6}>
-            {selectedComprovante?.isPdf ? (
-              <iframe
-                src={selectedComprovante.url}
-                style={{
-                  width: '100%',
-                  height: '80vh',
-                  border: 'none'
-                }}
-                title="Comprovante PDF"
-              />
-            ) : (
-              <Image
-                src={selectedComprovante?.url}
-                alt="Comprovante"
-                width="100%"
-                objectFit="contain"
-                maxH="80vh"
-                fallback={
-                  <Center p={8} bg="gray.100" borderRadius="lg">
-                    <Text color="gray.500">Erro ao carregar comprovante</Text>
-                  </Center>
-                }
-              />
-            )}
+          <ModalBody 
+            p={0} 
+            display="flex" 
+            justifyContent="center" 
+            alignItems="center" 
+            bg={useColorModeValue('gray.100', 'gray.700')}
+            h="calc(98vh - 57px)" // 57px is the header height (48px) + border (1px)
+          >
+            <Box w="100%" h="100%" overflow="hidden">
+              {isPdfDiploma ? (
+                <iframe 
+                  src={diplomaUrl || ''} 
+                  width="100%" 
+                  height="100%" 
+                  style={{ border: 'none' }}
+                />
+              ) : (
+                <Image 
+                  src={diplomaUrl || ''} 
+                  height="100%"
+                  width="100%"
+                  objectFit="contain" 
+                />
+              )}
+            </Box>
           </ModalBody>
         </ModalContent>
       </Modal>
@@ -1317,6 +1671,142 @@ const DoctorDetails = () => {
             </Button>
             <Button onClick={onAddressEditClose}>Cancelar</Button>
           </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Edit Especialidade Modal */}
+      <Modal isOpen={isEditEspecialidadeOpen} onClose={onEditEspecialidadeClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Editar Especialidade</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            {selectedEspecialidade && (
+              <Box
+                as="form"
+                onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  handleUpdateEspecialidade({
+                    instituicao_residencia_id: formData.get('instituicao_residencia_id') as string || undefined,
+                    instituicao_residencia_outra: formData.get('instituicao_residencia_outra') as string || undefined,
+                  });
+                }}
+              >
+                <VStack spacing={4}>
+                  <FormControl>
+                    <FormLabel>Nome da Especialidade</FormLabel>
+                    <Text>{selectedEspecialidade.nome}</Text>
+                  </FormControl>
+
+                  <FormControl>
+                    <FormLabel>Instituição</FormLabel>
+                    <Select
+                      name="instituicao_residencia_id"
+                      placeholder="Selecione uma instituição"
+                      defaultValue={selectedEspecialidade.instituicao_residencia?.nome}
+                      isDisabled={isLoadingInstituicoes}
+                    >
+                      {instituicoes.map((inst) => (
+                        <option key={inst.id} value={inst.id}>
+                          {inst.nome}
+                        </option>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+                  <FormControl>
+                    <FormLabel>Outra Instituição</FormLabel>
+                    <Input
+                      name="instituicao_residencia_outra"
+                      placeholder="Digite o nome da instituição"
+                      defaultValue={selectedEspecialidade.instituicao_residencia_outra || ''}
+                    />
+                    <Button
+                      mt={2}
+                      size="sm"
+                      colorScheme="green"
+                      onClick={async () => {
+                        const input = document.querySelector('input[name="instituicao_residencia_outra"]') as HTMLInputElement;
+                        const institutionName = input.value.trim();
+                        
+                        if (!institutionName) {
+                          toast({
+                            title: 'Campo vazio',
+                            description: 'Por favor, digite o nome da instituição.',
+                            status: 'warning',
+                            duration: 3000,
+                            isClosable: true,
+                          });
+                          return;
+                        }
+
+                        const newInstitutionId = await handleAddNewInstitution(institutionName);
+                        if (newInstitutionId) {
+                          // Clear the "Outra Instituição" field
+                          input.value = '';
+                          
+                          // Select the new institution in the dropdown
+                          const select = document.querySelector('select[name="instituicao_residencia_id"]') as HTMLSelectElement;
+                          if (select) {
+                            select.value = newInstitutionId;
+                          }
+                        }
+                      }}
+                    >
+                      Adicionar à Lista de Instituições
+                    </Button>
+                  </FormControl>
+
+                  <Button type="submit" colorScheme="blue" w="100%">
+                    Salvar Alterações
+                  </Button>
+                </VStack>
+              </Box>
+            )}
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      {/* Modal for viewing comprovante formacao */}
+      <Modal isOpen={isComprovanteFormacaoOpen} onClose={onComprovanteFormacaoClose} size="full">
+        <ModalOverlay />
+        <ModalContent maxW="98vw" h="98vh" mx="auto" my="1vh">
+          <ModalHeader 
+            borderBottomWidth="1px" 
+            bg={useColorModeValue('gray.50', 'gray.800')}
+            borderTopRadius="md"
+            py={2}
+          >
+            Comprovante de Formação
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody 
+            p={0} 
+            display="flex" 
+            justifyContent="center" 
+            alignItems="center" 
+            bg={useColorModeValue('gray.100', 'gray.700')}
+            h="calc(98vh - 57px)" // 57px is the header height (48px) + border (1px)
+          >
+            <Box w="100%" h="100%" overflow="hidden">
+              {selectedComprovanteFormacao?.isPdf ? (
+                <iframe 
+                  src={selectedComprovanteFormacao.url} 
+                  width="100%" 
+                  height="100%" 
+                  style={{ border: 'none' }}
+                />
+              ) : (
+                <Image 
+                  src={selectedComprovanteFormacao?.url} 
+                  height="100%"
+                  width="100%"
+                  objectFit="contain" 
+                />
+              )}
+            </Box>
+          </ModalBody>
         </ModalContent>
       </Modal>
     </PageContainer>

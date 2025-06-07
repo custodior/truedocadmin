@@ -51,46 +51,48 @@ export const getTotalLeadsCount = async () => {
 };
 
 export const getDoctorsWithPendingChangesCount = async () => {
-  // First get all approved doctors with pending RQE changes
-  const { data: rqeDoctors, error: rqeError } = await supabase
-    .from('medico')
-    .select('id')
-    .eq('aprovado', true)
-    .not('new_rqe', 'is', null);
+  try {
+    // Get ALL doctors with their relationships
+    const { data: doctors, error } = await supabase
+      .from('medico')
+      .select(`
+        id,
+        aprovado,
+        new_rqe,
+        medico_especialidade_residencia!left (
+          aprovado
+        ),
+        medico_subespecialidade_residencia!left (
+          aprovado
+        ),
+        formacao_outros!left (
+          aprovado
+        )
+      `)
+      .eq('aprovado', true);
 
-  if (rqeError) throw rqeError;
+    if (error) {
+      console.error('Error fetching doctors:', error)
+      throw error
+    }
 
-  // Get doctors with pending formacao_outros
-  const { data: formacaoDoctors, error: formacaoError } = await supabase
-    .from('formacao_outros')
-    .select('medico_id')
-    .eq('aprovado', false);
+    // Filter doctors with pending changes
+    const doctorsWithChanges = doctors?.filter(doctor => {
+      const hasNewRQE = doctor.new_rqe != null && doctor.new_rqe !== ''
+      const hasUnapprovedEsp = doctor.medico_especialidade_residencia?.some(esp => !esp.aprovado)
+      const hasUnapprovedSubesp = doctor.medico_subespecialidade_residencia?.some(sub => !sub.aprovado)
+      const hasUnapprovedForm = doctor.formacao_outros?.some(form => !form.aprovado)
 
-  if (formacaoError) throw formacaoError;
+      return hasNewRQE || hasUnapprovedEsp || hasUnapprovedSubesp || hasUnapprovedForm
+    })
 
-  // Get doctors with pending especialidades
-  const { data: especialidadeDoctors, error: especialidadeError } = await supabase
-    .from('medico_especialidade_residencia')
-    .select('medico_id')
-    .eq('aprovado', false);
+    console.log('Total doctors:', doctors?.length || 0)
+    console.log('Doctors with changes:', doctorsWithChanges?.length || 0)
+    console.log('Doctor IDs with changes:', doctorsWithChanges?.map(d => d.id))
 
-  if (especialidadeError) throw especialidadeError;
-
-  // Get doctors with pending subespecialidades
-  const { data: subespecialidadeDoctors, error: subespecialidadeError } = await supabase
-    .from('medico_subespecialidade_residencia')
-    .select('medico_id')
-    .eq('aprovado', false);
-
-  if (subespecialidadeError) throw subespecialidadeError;
-
-  // Combine all doctor IDs and get unique count
-  const allDoctorIds = new Set([
-    ...(rqeDoctors?.map(d => d.id) || []),
-    ...(formacaoDoctors?.map(d => d.medico_id) || []),
-    ...(especialidadeDoctors?.map(d => d.medico_id) || []),
-    ...(subespecialidadeDoctors?.map(d => d.medico_id) || [])
-  ]);
-
-  return allDoctorIds.size;
-}; 
+    return doctorsWithChanges?.length || 0
+  } catch (error) {
+    console.error('Error counting doctors with pending changes:', error)
+    throw error
+  }
+} 

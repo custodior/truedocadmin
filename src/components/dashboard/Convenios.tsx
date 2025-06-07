@@ -116,7 +116,7 @@ const Convenios = () => {
       setTotalConvenios(total)
       setError(null)
     } catch (err) {
-      setError('Error loading health insurance plans')
+      setError('Erro ao carregar convênios')
       console.error('Error fetching convenios:', err)
     } finally {
       setIsLoading(false)
@@ -135,14 +135,14 @@ const Convenios = () => {
       if (selectedConvenio) {
         await updateConvenio(selectedConvenio.id, formData)
         toast({
-          title: 'Health insurance plan updated successfully',
+          title: 'Convênio atualizado com sucesso',
           status: 'success',
           duration: 3000,
         })
       } else {
         await createConvenio(formData)
         toast({
-          title: 'Health insurance plan created successfully',
+          title: 'Convênio criado com sucesso',
           status: 'success',
           duration: 3000,
         })
@@ -153,7 +153,7 @@ const Convenios = () => {
       fetchConvenios()
     } catch (err) {
       toast({
-        title: `Error ${selectedConvenio ? 'updating' : 'creating'} health insurance plan`,
+        title: `Erro ao ${selectedConvenio ? 'atualizar' : 'criar'} convênio`,
         status: 'error',
         duration: 3000,
       })
@@ -167,18 +167,18 @@ const Convenios = () => {
   }
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this health insurance plan?')) {
+    if (window.confirm('Tem certeza que deseja excluir este convênio?')) {
       try {
         await deleteConvenio(id)
         toast({
-          title: 'Health insurance plan deleted successfully',
+          title: 'Convênio excluído com sucesso',
           status: 'success',
           duration: 3000,
         })
         fetchConvenios()
       } catch (err) {
         toast({
-          title: 'Error deleting health insurance plan',
+          title: 'Erro ao excluir convênio',
           status: 'error',
           duration: 3000,
         })
@@ -196,8 +196,8 @@ const Convenios = () => {
 
   return (
     <PageContainer
-      title="Health Insurance Plans"
-      description="Manage health insurance plans"
+      title="Convênios"
+      description="Gerencie planos de saúde e convênios"
     >
       <HStack mb={6} spacing={4}>
         <InputGroup maxW="xs">
@@ -205,7 +205,7 @@ const Convenios = () => {
             <FiSearch />
           </InputLeftElement>
           <Input
-            placeholder="Search by name..."
+            placeholder="Pesquisar por nome..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             bg={useColorModeValue('white', 'gray.800')}
@@ -223,7 +223,7 @@ const Convenios = () => {
           borderRadius="lg"
           px={6}
         >
-          New Insurance Plan
+          Novo Convênio
         </Button>
       </HStack>
 
@@ -251,7 +251,7 @@ const Convenios = () => {
                 cursor="pointer" 
                 onClick={() => handleSort('nome')}
               >
-                Name {sort.column === 'nome' && (sort.direction === 'asc' ? '↑' : '↓')}
+                Nome {sort.column === 'nome' && (sort.direction === 'asc' ? '↑' : '↓')}
               </Th>
               <Th></Th>
             </Tr>
@@ -266,7 +266,7 @@ const Convenios = () => {
             ) : convenios.length === 0 ? (
               <Tr>
                 <Td colSpan={2} textAlign="center" py={10}>
-                  No health insurance plans found
+                  Nenhum convênio encontrado
                 </Td>
               </Tr>
             ) : (
@@ -287,13 +287,13 @@ const Convenios = () => {
                           icon={<FiEdit />}
                           onClick={() => handleEdit(convenio)}
                         >
-                          Edit
+                          Editar
                         </MenuItem>
                         <MenuItem 
                           color="red.500" 
                           onClick={() => handleDelete(convenio.id)}
                         >
-                          Remove
+                          Remover
                         </MenuItem>
                       </MenuList>
                     </Menu>
@@ -307,21 +307,21 @@ const Convenios = () => {
         {/* Pagination */}
         <Flex justify="space-between" align="center" px={6} py={4}>
           <Text color="gray.600">
-            {totalConvenios} health insurance plans found
+            {totalConvenios} convênios encontrados
           </Text>
           <HStack spacing={2}>
             <IconButton
               icon={<FiChevronLeft />}
-              aria-label="Previous page"
+              aria-label="Página anterior"
               disabled={currentPage === 0}
               onClick={() => setCurrentPage(currentPage - 1)}
             />
             <Text>
-              Page {currentPage + 1} of {totalPages}
+              Página {currentPage + 1} de {totalPages}
             </Text>
             <IconButton
               icon={<FiChevronRight />}
-              aria-label="Next page"
+              aria-label="Próxima página"
               disabled={currentPage >= totalPages - 1}
               onClick={() => setCurrentPage(currentPage + 1)}
             />
@@ -334,17 +334,17 @@ const Convenios = () => {
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>
-            {selectedConvenio ? 'Edit Insurance Plan' : 'New Insurance Plan'}
+            {selectedConvenio ? 'Editar Convênio' : 'Novo Convênio'}
           </ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
             <VStack spacing={4}>
               <FormControl>
-                <FormLabel>Name</FormLabel>
+                <FormLabel>Nome</FormLabel>
                 <Input
                   value={formData.nome}
                   onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                  placeholder="Insurance plan name"
+                  placeholder="Nome do convênio"
                 />
               </FormControl>
 
@@ -357,7 +357,7 @@ const Convenios = () => {
                   bgGradient: `linear(to-r, ${customColors.primaryDark}, ${customColors.secondaryDark})`,
                 }}
               >
-                {selectedConvenio ? 'Update' : 'Create'}
+                {selectedConvenio ? 'Atualizar' : 'Criar'}
               </Button>
             </VStack>
           </ModalBody>

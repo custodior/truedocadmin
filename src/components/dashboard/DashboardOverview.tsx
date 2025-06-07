@@ -21,6 +21,7 @@ import {
   getTotalLeadsCount,
   getDoctorsWithPendingChangesCount
 } from '../../lib/supabaseClient'
+import { useNavigate } from 'react-router-dom'
 
 const MotionBox = motion(Box)
 
@@ -39,41 +40,54 @@ interface StatCardProps {
   icon: React.ElementType
   index: number
   isLoading?: boolean
+  onClick?: () => void
 }
 
-function StatCard({ title, stat, helpText, icon, index, isLoading = false }: StatCardProps) {
+function StatCard({ title, stat, helpText, icon, index, isLoading = false, onClick }: StatCardProps) {
   const bg = useColorModeValue('white', 'gray.800')
   const borderColor = useColorModeValue('gray.200', 'gray.600')
-  const iconBg = useColorModeValue(`${customColors.primary}15`, `${customColors.primary}30`)
-  const textColor = useColorModeValue('gray.600', 'gray.300')
+  const iconBg = useColorModeValue('gray.100', 'gray.700')
+  const textColor = useColorModeValue('gray.600', 'gray.400')
+
+  // Get the color scheme based on the index
+  const getColorScheme = (idx: number) => {
+    switch (idx) {
+      case 0: // Médicos Pendentes
+        return 'orange'
+      case 1: // Médicos Aprovados
+        return 'green'
+      case 2: // Alterações Pendentes
+        return 'yellow'
+      case 3: // Total de Leads
+        return 'blue'
+      default:
+        return 'gray'
+    }
+  }
+
+  const colorScheme = getColorScheme(index)
 
   return (
     <MotionBox
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
-      height="full"
+      cursor={onClick ? 'pointer' : 'default'}
+      onClick={onClick}
+      _hover={onClick ? {
+        transform: 'translateY(-2px)',
+        shadow: 'lg',
+        transition: 'all 0.2s',
+      } : {}}
     >
       <Stat
-        px={{ base: 4, md: 6 }}
-        py="5"
+        px={4}
+        py={3}
         bg={bg}
-        shadow="lg"
-        rounded="2xl"
+        shadow="sm"
+        rounded="xl"
         borderWidth="1px"
         borderColor={borderColor}
-        position="relative"
-        overflow="hidden"
-        height="full"
-        display="flex"
-        flexDirection="column"
-        justifyContent="space-between"
-        _hover={{
-          transform: 'translateY(-4px)',
-          shadow: '2xl',
-          borderColor: customColors.primary,
-        }}
-        transition="all 0.3s"
       >
         <Flex alignItems="flex-start" mb={2}>
           <Box
@@ -88,7 +102,7 @@ function StatCard({ title, stat, helpText, icon, index, isLoading = false }: Sta
               as={icon}
               w={5}
               h={5}
-              color={customColors.primary}
+              color={`${colorScheme}.500`}
             />
           </Box>
           <Box flex="1" ml={3}>
@@ -104,11 +118,10 @@ function StatCard({ title, stat, helpText, icon, index, isLoading = false }: Sta
             <StatNumber
               fontSize="2xl"
               fontWeight="bold"
-              bgGradient={`linear(to-r, ${customColors.primary}, ${customColors.secondary})`}
-              bgClip="text"
+              color={`${colorScheme}.500`}
               lineHeight="1.2"
             >
-              {isLoading ? <Spinner size="sm" color={customColors.primary} /> : stat}
+              {isLoading ? <Spinner size="sm" color={`${colorScheme}.500`} /> : stat}
             </StatNumber>
           </Box>
         </Flex>
@@ -127,6 +140,7 @@ function StatCard({ title, stat, helpText, icon, index, isLoading = false }: Sta
 }
 
 const DashboardOverview = () => {
+  const navigate = useNavigate()
   const [pendingCount, setPendingCount] = useState<number | null>(null)
   const [approvedCount, setApprovedCount] = useState<number | null>(null)
   const [leadsCount, setLeadsCount] = useState<number | null>(null)
@@ -162,6 +176,22 @@ const DashboardOverview = () => {
     fetchCounts()
   }, [])
 
+  const handleNavigateToMedicos = (filter: 'pending' | 'approved' | 'pendingChanges') => {
+    const searchParams = new URLSearchParams()
+    switch (filter) {
+      case 'pending':
+        searchParams.set('showUnapproved', 'true')
+        break
+      case 'approved':
+        searchParams.set('showApproved', 'true')
+        break
+      case 'pendingChanges':
+        searchParams.set('showPendingChanges', 'true')
+        break
+    }
+    navigate(`/dashboard/medicos?${searchParams.toString()}`)
+  }
+
   return (
     <Box>
       <MotionBox
@@ -195,6 +225,7 @@ const DashboardOverview = () => {
           icon={FaUserClock}
           index={0}
           isLoading={isLoadingPending}
+          onClick={() => handleNavigateToMedicos('pending')}
         />
         <StatCard
           title="Médicos Aprovados"
@@ -203,6 +234,7 @@ const DashboardOverview = () => {
           icon={FaUserCheck}
           index={1}
           isLoading={isLoadingApproved}
+          onClick={() => handleNavigateToMedicos('approved')}
         />
         <StatCard
           title="Alterações Pendentes"
@@ -211,6 +243,7 @@ const DashboardOverview = () => {
           icon={FaUserEdit}
           index={2}
           isLoading={isLoadingPendingChanges}
+          onClick={() => handleNavigateToMedicos('pendingChanges')}
         />
         <StatCard
           title="Total de Leads"

@@ -116,7 +116,7 @@ const Faculdades = () => {
       setTotalFaculdades(total)
       setError(null)
     } catch (err) {
-      setError('Error loading universities')
+      setError('Erro ao carregar faculdades')
       console.error('Error fetching faculdades:', err)
     } finally {
       setIsLoading(false)
@@ -135,14 +135,14 @@ const Faculdades = () => {
       if (selectedFaculdade) {
         await updateFaculdade(selectedFaculdade.id, formData)
         toast({
-          title: 'University updated successfully',
+          title: 'Faculdade atualizada com sucesso',
           status: 'success',
           duration: 3000,
         })
       } else {
         await createFaculdade(formData)
         toast({
-          title: 'University created successfully',
+          title: 'Faculdade criada com sucesso',
           status: 'success',
           duration: 3000,
         })
@@ -153,7 +153,7 @@ const Faculdades = () => {
       fetchFaculdades()
     } catch (err) {
       toast({
-        title: `Error ${selectedFaculdade ? 'updating' : 'creating'} university`,
+        title: `Erro ao ${selectedFaculdade ? 'atualizar' : 'criar'} faculdade`,
         status: 'error',
         duration: 3000,
       })
@@ -167,18 +167,18 @@ const Faculdades = () => {
   }
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this university?')) {
+    if (window.confirm('Tem certeza que deseja excluir esta faculdade?')) {
       try {
         await deleteFaculdade(id)
         toast({
-          title: 'University deleted successfully',
+          title: 'Faculdade excluída com sucesso',
           status: 'success',
           duration: 3000,
         })
         fetchFaculdades()
       } catch (err) {
         toast({
-          title: 'Error deleting university',
+          title: 'Erro ao excluir faculdade',
           status: 'error',
           duration: 3000,
         })
@@ -196,8 +196,8 @@ const Faculdades = () => {
 
   return (
     <PageContainer
-      title="Universities"
-      description="Manage medical schools and universities"
+      title="Faculdades"
+      description="Gerencie faculdades e universidades de medicina"
     >
       <HStack mb={6} spacing={4}>
         <InputGroup maxW="xs">
@@ -205,7 +205,7 @@ const Faculdades = () => {
             <FiSearch />
           </InputLeftElement>
           <Input
-            placeholder="Search by name..."
+            placeholder="Pesquisar por nome..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             bg={useColorModeValue('white', 'gray.800')}
@@ -223,7 +223,7 @@ const Faculdades = () => {
           borderRadius="lg"
           px={6}
         >
-          New University
+          Nova Faculdade
         </Button>
       </HStack>
 
@@ -251,7 +251,7 @@ const Faculdades = () => {
                 cursor="pointer" 
                 onClick={() => handleSort('nome')}
               >
-                Name {sort.column === 'nome' && (sort.direction === 'asc' ? '↑' : '↓')}
+                Nome {sort.column === 'nome' && (sort.direction === 'asc' ? '↑' : '↓')}
               </Th>
               <Th></Th>
             </Tr>
@@ -266,7 +266,7 @@ const Faculdades = () => {
             ) : faculdades.length === 0 ? (
               <Tr>
                 <Td colSpan={2} textAlign="center" py={10}>
-                  No universities found
+                  Nenhuma faculdade encontrada
                 </Td>
               </Tr>
             ) : (
@@ -287,13 +287,13 @@ const Faculdades = () => {
                           icon={<FiEdit />}
                           onClick={() => handleEdit(faculdade)}
                         >
-                          Edit
+                          Editar
                         </MenuItem>
                         <MenuItem 
                           color="red.500" 
                           onClick={() => handleDelete(faculdade.id)}
                         >
-                          Remove
+                          Remover
                         </MenuItem>
                       </MenuList>
                     </Menu>
@@ -307,21 +307,21 @@ const Faculdades = () => {
         {/* Pagination */}
         <Flex justify="space-between" align="center" px={6} py={4}>
           <Text color="gray.600">
-            {totalFaculdades} universities found
+            {totalFaculdades} faculdades encontradas
           </Text>
           <HStack spacing={2}>
             <IconButton
               icon={<FiChevronLeft />}
-              aria-label="Previous page"
+              aria-label="Página anterior"
               disabled={currentPage === 0}
               onClick={() => setCurrentPage(currentPage - 1)}
             />
             <Text>
-              Page {currentPage + 1} of {totalPages}
+              Página {currentPage + 1} de {totalPages}
             </Text>
             <IconButton
               icon={<FiChevronRight />}
-              aria-label="Next page"
+              aria-label="Próxima página"
               disabled={currentPage >= totalPages - 1}
               onClick={() => setCurrentPage(currentPage + 1)}
             />
@@ -334,17 +334,17 @@ const Faculdades = () => {
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>
-            {selectedFaculdade ? 'Edit University' : 'New University'}
+            {selectedFaculdade ? 'Editar Faculdade' : 'Nova Faculdade'}
           </ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
             <VStack spacing={4}>
               <FormControl>
-                <FormLabel>Name</FormLabel>
+                <FormLabel>Nome</FormLabel>
                 <Input
                   value={formData.nome}
                   onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                  placeholder="University name"
+                  placeholder="Nome da faculdade"
                 />
               </FormControl>
 
@@ -357,7 +357,7 @@ const Faculdades = () => {
                   bgGradient: `linear(to-r, ${customColors.primaryDark}, ${customColors.secondaryDark})`,
                 }}
               >
-                {selectedFaculdade ? 'Update' : 'Create'}
+                {selectedFaculdade ? 'Atualizar' : 'Criar'}
               </Button>
             </VStack>
           </ModalBody>
