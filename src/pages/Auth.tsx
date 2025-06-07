@@ -127,7 +127,7 @@ const Auth = () => {
               TrueDoc Admin
             </Heading>
             <Text fontSize="xl" maxW="md" lineHeight="tall" fontWeight="medium">
-              Plataforma de gestão médica integrada para otimizar seus processos e melhorar a experiência dos pacientes.
+              Plataform pra gerenciar o site TrueDoc.com.br
             </Text>
           </MotionFlex>
         </Flex>
