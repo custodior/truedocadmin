@@ -12,14 +12,27 @@ import {
   Heading,
   Text,
   Spinner,
+  Button,
+  ButtonGroup,
+  useToast,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  Textarea,
+  useClipboard,
 } from '@chakra-ui/react'
-import { FaUserMd, FaUserCheck, FaUserClock, FaUserEdit } from 'react-icons/fa'
+import { FaUserMd, FaUserCheck, FaUserClock, FaUserEdit, FaEnvelope, FaCopy } from 'react-icons/fa'
 import { motion } from 'framer-motion'
 import { 
   getPendingDoctorsCount, 
   getApprovedDoctorsCount, 
   getTotalLeadsCount,
-  getDoctorsWithPendingChangesCount
+  getDoctorsWithPendingChangesCount,
+  supabase
 } from '../../lib/supabaseClient'
 import { useNavigate } from 'react-router-dom'
 
@@ -141,6 +154,7 @@ function StatCard({ title, stat, helpText, icon, index, isLoading = false, onCli
 
 const DashboardOverview = () => {
   const navigate = useNavigate()
+  const toast = useToast()
   const [pendingCount, setPendingCount] = useState<number | null>(null)
   const [approvedCount, setApprovedCount] = useState<number | null>(null)
   const [leadsCount, setLeadsCount] = useState<number | null>(null)
@@ -149,6 +163,11 @@ const DashboardOverview = () => {
   const [isLoadingApproved, setIsLoadingApproved] = useState(true)
   const [isLoadingLeads, setIsLoadingLeads] = useState(true)
   const [isLoadingPendingChanges, setIsLoadingPendingChanges] = useState(true)
+  const [isGeneratingEmails, setIsGeneratingEmails] = useState(false)
+  const [emailListModalOpen, setEmailListModalOpen] = useState(false);
+  const [emailListTitle, setEmailListTitle] = useState('');
+  const [emailList, setEmailList] = useState('');
+  const { hasCopied, onCopy } = useClipboard(emailList);
 
   useEffect(() => {
     const fetchCounts = async () => {
@@ -191,6 +210,94 @@ const DashboardOverview = () => {
     }
     navigate(`/dashboard/medicos?${searchParams.toString()}`)
   }
+
+  const generateEmailList = async (type: 'doctors' | 'leads' | 'all') => {
+    try {
+      setIsGeneratingEmails(true)
+      let query;
+
+      switch (type) {
+        case 'doctors':
+          query = supabase
+            .from('medico')
+            .select('email')
+            .not('email', 'is', null);
+          setEmailListTitle('Lista de Emails - Médicos');
+          break;
+        case 'leads':
+          query = supabase
+            .from('lead')
+            .select('email')
+            .not('email', 'is', null);
+          setEmailListTitle('Lista de Emails - Leads');
+          break;
+        case 'all':
+          const [doctorsResult, leadsResult] = await Promise.all([
+            supabase
+              .from('medico')
+              .select('email')
+              .not('email', 'is', null),
+            supabase
+              .from('lead')
+              .select('email')
+              .not('email', 'is', null)
+          ]);
+
+          if (doctorsResult.error) throw doctorsResult.error;
+          if (leadsResult.error) throw leadsResult.error;
+
+          // Combine all emails with semicolons
+          const allEmails = [
+            ...(doctorsResult.data || []).map(item => item.email),
+            ...(leadsResult.data || []).map(item => item.email)
+          ].join('; ');
+
+          setEmailList(allEmails);
+          setEmailListTitle('Lista Completa de Emails');
+          setEmailListModalOpen(true);
+
+          toast({
+            title: 'Lista de emails gerada com sucesso',
+            description: `${doctorsResult.data?.length || 0} médicos e ${leadsResult.data?.length || 0} leads`,
+            status: 'success',
+            duration: 5000,
+            isClosable: true,
+          });
+          setIsGeneratingEmails(false);
+          return;
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      const emails = (data || [])
+        .map(item => item.email)
+        .join('; ');
+
+      setEmailList(emails);
+      setEmailListModalOpen(true);
+
+      toast({
+        title: 'Lista de emails gerada com sucesso',
+        description: `${data?.length || 0} emails`,
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error('Error generating email list:', error);
+      toast({
+        title: 'Erro ao gerar lista de emails',
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsGeneratingEmails(false);
+    }
+  };
 
   return (
     <Box>
@@ -252,8 +359,93 @@ const DashboardOverview = () => {
           icon={FaUserMd}
           index={3}
           isLoading={isLoadingLeads}
+          onClick={() => navigate('/dashboard/leads')}
         />
       </SimpleGrid>
+
+      <MotionBox
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+      >
+        <Box
+          bg={useColorModeValue('white', 'gray.800')}
+          p={6}
+          rounded="xl"
+          shadow="sm"
+          borderWidth="1px"
+          borderColor={useColorModeValue('gray.200', 'gray.600')}
+        >
+          <Heading size="md" mb={4}>
+            Gerar Listas de Email
+          </Heading>
+          <ButtonGroup spacing={4}>
+            <Button
+              leftIcon={<FaEnvelope />}
+              colorScheme="blue"
+              onClick={() => generateEmailList('doctors')}
+              isLoading={isGeneratingEmails}
+            >
+              Lista de Médicos
+            </Button>
+            <Button
+              leftIcon={<FaEnvelope />}
+              colorScheme="green"
+              onClick={() => generateEmailList('leads')}
+              isLoading={isGeneratingEmails}
+            >
+              Lista de Leads
+            </Button>
+            <Button
+              leftIcon={<FaEnvelope />}
+              colorScheme="purple"
+              onClick={() => generateEmailList('all')}
+              isLoading={isGeneratingEmails}
+            >
+              Lista Completa
+            </Button>
+          </ButtonGroup>
+        </Box>
+      </MotionBox>
+
+      <Modal 
+        isOpen={emailListModalOpen} 
+        onClose={() => setEmailListModalOpen(false)}
+        size="xl"
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>{emailListTitle}</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text mb={2} fontSize="sm" color="gray.600">
+              Emails separados por ponto e vírgula, prontos para colar em seu provedor de email.
+            </Text>
+            <Textarea
+              value={emailList}
+              readOnly
+              height="200px"
+              fontFamily="monospace"
+              whiteSpace="normal"
+              wordBreak="break-all"
+            />
+          </ModalBody>
+          <ModalFooter>
+            <ButtonGroup spacing={4}>
+              <Button
+                leftIcon={<FaCopy />}
+                onClick={onCopy}
+                colorScheme={hasCopied ? 'green' : 'blue'}
+              >
+                {hasCopied ? 'Copiado!' : 'Copiar'}
+              </Button>
+              <Button onClick={() => setEmailListModalOpen(false)}>
+                Fechar
+              </Button>
+            </ButtonGroup>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   )
 }

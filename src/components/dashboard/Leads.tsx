@@ -40,7 +40,7 @@ import {
 
 const MotionBox = motion(Box)
 
-// Custom theme colors based on #5deb99
+// Cores personalizadas baseadas em #5deb99
 const customColors = {
   primary: '#5deb99',
   primaryDark: '#4ac980',
@@ -48,7 +48,7 @@ const customColors = {
   secondaryDark: '#35b98c',
 }
 
-const ITEMS_PER_PAGE = 10
+const ITENS_POR_PAGINA = 10
 
 const Leads = () => {
   const tableBg = useColorModeValue('white', 'gray.800')
@@ -60,7 +60,7 @@ const Leads = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Filters and Pagination
+  // Filtros e Paginação
   const [filters, setFilters] = useState<LeadFilters>({})
   const [sort, setSort] = useState<LeadSort>({ column: 'email', direction: 'desc' })
   const [currentPage, setCurrentPage] = useState(0)
@@ -70,7 +70,7 @@ const Leads = () => {
     fetchLeads()
   }, [filters, sort, currentPage])
 
-  // Add debounce to search
+  // Adiciona debounce à pesquisa
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (searchTerm !== (filters.search || '')) {
@@ -86,15 +86,15 @@ const Leads = () => {
       setIsLoading(true)
       const pagination: PaginationParams = {
         page: currentPage,
-        pageSize: ITEMS_PER_PAGE,
+        pageSize: ITENS_POR_PAGINA,
       }
       const { leads: fetchedLeads, total } = await getLeads(filters, sort, pagination)
       setLeads(fetchedLeads)
       setTotalLeads(total)
       setError(null)
     } catch (err) {
-      setError('Error loading leads')
-      console.error('Error fetching leads:', err)
+      setError('Erro ao carregar leads')
+      console.error('Erro ao buscar leads:', err)
     } finally {
       setIsLoading(false)
     }
@@ -108,18 +108,18 @@ const Leads = () => {
   }
 
   const handleDeleteLead = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this lead?')) {
+    if (window.confirm('Tem certeza que deseja excluir este lead?')) {
       try {
         await deleteLead(id)
         toast({
-          title: 'Lead deleted successfully',
+          title: 'Lead excluído com sucesso',
           status: 'success',
           duration: 3000,
         })
         fetchLeads()
       } catch (err) {
         toast({
-          title: 'Error deleting lead',
+          title: 'Erro ao excluir lead',
           status: 'error',
           duration: 3000,
         })
@@ -131,15 +131,15 @@ const Leads = () => {
     const props = {
       new: {
         colorScheme: 'blue',
-        text: step,
+        text: 'Novo',
       },
       contacted: {
         colorScheme: 'orange',
-        text: step,
+        text: 'Contatado',
       },
       converted: {
         colorScheme: 'green',
-        text: step,
+        text: 'Convertido',
       },
     }[step] || {
       colorScheme: 'gray',
@@ -159,12 +159,12 @@ const Leads = () => {
     )
   }
 
-  const totalPages = Math.ceil(totalLeads / ITEMS_PER_PAGE)
+  const totalPages = Math.ceil(totalLeads / ITENS_POR_PAGINA)
 
   return (
     <PageContainer
       title="Leads"
-      description="Manage your leads and potential clients"
+      description="Gerencie seus leads e potenciais clientes"
     >
       <HStack mb={6} spacing={4}>
         <InputGroup maxW="xs">
@@ -172,7 +172,7 @@ const Leads = () => {
             <FiSearch />
           </InputLeftElement>
           <Input
-            placeholder="Search by email..."
+            placeholder="Pesquisar por email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             bg={useColorModeValue('white', 'gray.800')}
@@ -198,87 +198,93 @@ const Leads = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Table>
-          <Thead>
-            <Tr>
-              <Th 
-                cursor="pointer" 
-                onClick={() => handleSort('email')}
-              >
-                Email {sort.column === 'email' && (sort.direction === 'asc' ? '↑' : '↓')}
-              </Th>
-              <Th 
-                cursor="pointer" 
-                onClick={() => handleSort('step')}
-              >
-                Step {sort.column === 'step' && (sort.direction === 'asc' ? '↑' : '↓')}
-              </Th>
-              <Th></Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {isLoading ? (
+        <Box overflowX="auto">
+          <Table variant="simple" w="100%">
+            <Thead>
               <Tr>
-                <Td colSpan={3} textAlign="center" py={10}>
-                  <Spinner color={customColors.primary} />
-                </Td>
+                <Th
+                  cursor="pointer"
+                  onClick={() => handleSort('email')}
+                  _hover={{ color: customColors.primary }}
+                >
+                  Email {sort.column === 'email' && (sort.direction === 'asc' ? '↑' : '↓')}
+                </Th>
+                <Th
+                  cursor="pointer"
+                  onClick={() => handleSort('step')}
+                  _hover={{ color: customColors.primary }}
+                >
+                  Step {sort.column === 'step' && (sort.direction === 'asc' ? '↑' : '↓')}
+                </Th>
+                <Th>Ações</Th>
               </Tr>
-            ) : leads.length === 0 ? (
-              <Tr>
-                <Td colSpan={3} textAlign="center" py={10}>
-                  No leads found
-                </Td>
-              </Tr>
-            ) : (
-              leads.map((lead) => (
-                <Tr key={lead.id}>
-                  <Td fontWeight="medium">{lead.email}</Td>
-                  <Td>{getStepBadge(lead.step)}</Td>
-                  <Td>
-                    <Menu>
-                      <MenuButton
-                        as={IconButton}
-                        icon={<FiMoreVertical />}
-                        variant="ghost"
-                        size="sm"
-                        borderRadius="full"
-                      />
-                      <MenuList>
-                        <MenuItem color="red.500" onClick={() => handleDeleteLead(lead.id)}>
-                          Remove
-                        </MenuItem>
-                      </MenuList>
-                    </Menu>
+            </Thead>
+            <Tbody>
+              {isLoading ? (
+                <Tr>
+                  <Td colSpan={3}>
+                    <Flex justify="center" align="center" py={4}>
+                      <Spinner size="lg" color={customColors.primary} />
+                    </Flex>
                   </Td>
                 </Tr>
-              ))
-            )}
-          </Tbody>
-        </Table>
+              ) : leads.length === 0 ? (
+                <Tr>
+                  <Td colSpan={3}>
+                    <Text textAlign="center" py={4} color="gray.500">
+                      Nenhum lead encontrado
+                    </Text>
+                  </Td>
+                </Tr>
+              ) : (
+                leads.map((lead) => (
+                  <Tr key={lead.id}>
+                    <Td>{lead.email}</Td>
+                    <Td>{getStepBadge(lead.step)}</Td>
+                    <Td>
+                      <Menu>
+                        <MenuButton
+                          as={IconButton}
+                          icon={<FiMoreVertical />}
+                          variant="ghost"
+                          size="sm"
+                        />
+                        <MenuList>
+                          <MenuItem onClick={() => handleDeleteLead(lead.id)}>
+                            Excluir
+                          </MenuItem>
+                        </MenuList>
+                      </Menu>
+                    </Td>
+                  </Tr>
+                ))
+              )}
+            </Tbody>
+          </Table>
+        </Box>
 
-        {/* Pagination */}
-        <Flex justify="space-between" align="center" px={6} py={4}>
-          <Text color="gray.600">
-            {totalLeads} leads found
-          </Text>
-          <HStack spacing={2}>
+        {/* Paginação */}
+        {!isLoading && leads.length > 0 && (
+          <Flex justify="center" align="center" p={4} borderTopWidth="1px">
             <IconButton
               icon={<FiChevronLeft />}
-              aria-label="Previous page"
-              disabled={currentPage === 0}
               onClick={() => setCurrentPage(currentPage - 1)}
+              isDisabled={currentPage === 0}
+              mr={2}
+              aria-label="Página anterior"
             />
-            <Text>
-              Page {currentPage + 1} of {totalPages}
+            <Text mx={4}>
+              Página {currentPage + 1} de {totalPages}
             </Text>
             <IconButton
               icon={<FiChevronRight />}
-              aria-label="Next page"
-              disabled={currentPage >= totalPages - 1}
               onClick={() => setCurrentPage(currentPage + 1)}
+              isDisabled={currentPage + 1 >= totalPages}
+              ml={2}
+              aria-label="Próxima página"
             />
-          </HStack>
-        </Flex>
+          </Flex>
+        )}
       </MotionBox>
     </PageContainer>
   )

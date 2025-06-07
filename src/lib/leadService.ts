@@ -4,6 +4,7 @@ export interface Lead {
   id: string
   email: string
   step: string
+  created_at: string
 }
 
 export interface LeadFilters {
