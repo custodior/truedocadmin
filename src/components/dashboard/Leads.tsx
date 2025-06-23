@@ -62,7 +62,7 @@ const Leads = () => {
 
   // Filtros e Paginação
   const [filters, setFilters] = useState<LeadFilters>({})
-  const [sort, setSort] = useState<LeadSort>({ column: 'email', direction: 'desc' })
+  const [sort, setSort] = useState<LeadSort>({ column: 'data_inserido', direction: 'desc' })
   const [currentPage, setCurrentPage] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -149,10 +149,11 @@ const Leads = () => {
     return (
       <Badge
         colorScheme={props.colorScheme}
-        px={2}
+        px={{ base: 1, md: 2 }}
         py={1}
         borderRadius="full"
         textTransform="capitalize"
+        fontSize={{ base: "2xs", md: "xs" }}
       >
         {props.text}
       </Badge>
@@ -199,68 +200,83 @@ const Leads = () => {
         transition={{ duration: 0.5 }}
       >
         <Box overflowX="auto">
-          <Table variant="simple" w="100%">
-            <Thead>
+          <Table variant="simple" w="100%" size={{ base: "sm", md: "md" }}>
+          <Thead>
+            <Tr>
+              <Th 
+                cursor="pointer" 
+                onClick={() => handleSort('email')}
+                _hover={{ color: customColors.primary }}
+                fontSize={{ base: "xs", md: "sm" }}
+                p={{ base: 2, md: 4 }}
+              >
+                Email {sort.column === 'email' && (sort.direction === 'asc' ? '↑' : '↓')}
+              </Th>
+              <Th 
+                cursor="pointer" 
+                onClick={() => handleSort('step')}
+                _hover={{ color: customColors.primary }}
+                fontSize={{ base: "xs", md: "sm" }}
+                p={{ base: 2, md: 4 }}
+              >
+                Step {sort.column === 'step' && (sort.direction === 'asc' ? '↑' : '↓')}
+              </Th>
+              <Th fontSize={{ base: "xs", md: "sm" }} p={{ base: 2, md: 4 }} w={{ base: "60px", md: "80px" }}>Ações</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {isLoading ? (
               <Tr>
-                <Th
-                  cursor="pointer"
-                  onClick={() => handleSort('email')}
-                  _hover={{ color: customColors.primary }}
-                >
-                  Email {sort.column === 'email' && (sort.direction === 'asc' ? '↑' : '↓')}
-                </Th>
-                <Th
-                  cursor="pointer"
-                  onClick={() => handleSort('step')}
-                  _hover={{ color: customColors.primary }}
-                >
-                  Step {sort.column === 'step' && (sort.direction === 'asc' ? '↑' : '↓')}
-                </Th>
-                <Th>Ações</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {isLoading ? (
-                <Tr>
                   <Td colSpan={3}>
                     <Flex justify="center" align="center" py={4}>
                       <Spinner size="lg" color={customColors.primary} />
                     </Flex>
-                  </Td>
-                </Tr>
-              ) : leads.length === 0 ? (
-                <Tr>
+                </Td>
+              </Tr>
+            ) : leads.length === 0 ? (
+              <Tr>
                   <Td colSpan={3}>
                     <Text textAlign="center" py={4} color="gray.500">
                       Nenhum lead encontrado
                     </Text>
+                </Td>
+              </Tr>
+            ) : (
+              leads.map((lead) => (
+                <Tr key={lead.id}>
+                  <Td 
+                    fontSize={{ base: "xs", md: "sm" }} 
+                    p={{ base: 2, md: 4 }}
+                    maxW={{ base: "150px", md: "250px" }}
+                    whiteSpace="nowrap"
+                    overflow="hidden"
+                    textOverflow="ellipsis"
+                  >
+                    {lead.email}
+                  </Td>
+                  <Td fontSize={{ base: "xs", md: "sm" }} p={{ base: 2, md: 4 }}>
+                    {getStepBadge(lead.step)}
+                  </Td>
+                  <Td p={{ base: 1, md: 4 }}>
+                    <Menu>
+                      <MenuButton
+                        as={IconButton}
+                        icon={<FiMoreVertical />}
+                        variant="ghost"
+                        size={{ base: "xs", md: "sm" }}
+                      />
+                      <MenuList>
+                        <MenuItem onClick={() => handleDeleteLead(lead.id)}>
+                          Excluir
+                        </MenuItem>
+                      </MenuList>
+                    </Menu>
                   </Td>
                 </Tr>
-              ) : (
-                leads.map((lead) => (
-                  <Tr key={lead.id}>
-                    <Td>{lead.email}</Td>
-                    <Td>{getStepBadge(lead.step)}</Td>
-                    <Td>
-                      <Menu>
-                        <MenuButton
-                          as={IconButton}
-                          icon={<FiMoreVertical />}
-                          variant="ghost"
-                          size="sm"
-                        />
-                        <MenuList>
-                          <MenuItem onClick={() => handleDeleteLead(lead.id)}>
-                            Excluir
-                          </MenuItem>
-                        </MenuList>
-                      </Menu>
-                    </Td>
-                  </Tr>
-                ))
-              )}
-            </Tbody>
-          </Table>
+              ))
+            )}
+          </Tbody>
+        </Table>
         </Box>
 
         {/* Paginação */}
@@ -283,7 +299,7 @@ const Leads = () => {
               ml={2}
               aria-label="Próxima página"
             />
-          </Flex>
+        </Flex>
         )}
       </MotionBox>
     </PageContainer>

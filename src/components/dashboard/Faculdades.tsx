@@ -244,18 +244,21 @@ const Faculdades = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Table>
-          <Thead>
-            <Tr>
-              <Th 
-                cursor="pointer" 
-                onClick={() => handleSort('nome')}
-              >
-                Nome {sort.column === 'nome' && (sort.direction === 'asc' ? '↑' : '↓')}
-              </Th>
-              <Th></Th>
-            </Tr>
-          </Thead>
+        <Box overflowX="auto">
+          <Table size={{ base: "sm", md: "md" }}>
+            <Thead>
+              <Tr>
+                <Th 
+                  cursor="pointer" 
+                  onClick={() => handleSort('nome')}
+                  fontSize={{ base: "xs", md: "sm" }}
+                  p={{ base: 2, md: 4 }}
+                >
+                  Nome {sort.column === 'nome' && (sort.direction === 'asc' ? '↑' : '↓')}
+                </Th>
+                <Th w={{ base: "60px", md: "80px" }} p={{ base: 2, md: 4 }}></Th>
+              </Tr>
+            </Thead>
           <Tbody>
             {isLoading ? (
               <Tr>
@@ -272,14 +275,24 @@ const Faculdades = () => {
             ) : (
               faculdades.map((faculdade) => (
                 <Tr key={faculdade.id}>
-                  <Td fontWeight="medium">{faculdade.nome}</Td>
-                  <Td textAlign="right">
+                  <Td 
+                    fontWeight="medium" 
+                    fontSize={{ base: "xs", md: "sm" }} 
+                    p={{ base: 2, md: 4 }}
+                    maxW={{ base: "200px", md: "300px" }}
+                    whiteSpace="nowrap"
+                    overflow="hidden"
+                    textOverflow="ellipsis"
+                  >
+                    {faculdade.nome}
+                  </Td>
+                  <Td textAlign="right" p={{ base: 1, md: 4 }}>
                     <Menu>
                       <MenuButton
                         as={IconButton}
                         icon={<FiMoreVertical />}
                         variant="ghost"
-                        size="sm"
+                        size={{ base: "xs", md: "sm" }}
                         borderRadius="full"
                       />
                       <MenuList>
@@ -302,11 +315,12 @@ const Faculdades = () => {
               ))
             )}
           </Tbody>
-        </Table>
+          </Table>
+        </Box>
 
         {/* Pagination */}
-        <Flex justify="space-between" align="center" px={6} py={4}>
-          <Text color="gray.600">
+        <Flex justify="space-between" align="center" px={{ base: 4, md: 6 }} py={4} flexWrap="wrap" gap={2}>
+          <Text color="gray.600" fontSize={{ base: "xs", md: "sm" }}>
             {totalFaculdades} faculdades encontradas
           </Text>
           <HStack spacing={2}>
@@ -315,8 +329,9 @@ const Faculdades = () => {
               aria-label="Página anterior"
               disabled={currentPage === 0}
               onClick={() => setCurrentPage(currentPage - 1)}
+              size={{ base: "xs", md: "sm" }}
             />
-            <Text>
+            <Text fontSize={{ base: "xs", md: "sm" }}>
               Página {currentPage + 1} de {totalPages}
             </Text>
             <IconButton
@@ -324,6 +339,7 @@ const Faculdades = () => {
               aria-label="Próxima página"
               disabled={currentPage >= totalPages - 1}
               onClick={() => setCurrentPage(currentPage + 1)}
+              size={{ base: "xs", md: "sm" }}
             />
           </HStack>
         </Flex>

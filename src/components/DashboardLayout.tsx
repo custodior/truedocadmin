@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { ReactNode, useState } from 'react'
 import {
   Box,
   Flex,
@@ -8,6 +8,12 @@ import {
   useColorModeValue,
   BoxProps,
   FlexProps,
+  Drawer,
+  DrawerContent,
+  DrawerOverlay,
+  useDisclosure,
+  IconButton,
+  useBreakpointValue,
 } from '@chakra-ui/react'
 import { Link, useLocation } from 'react-router-dom'
 import { IconType } from 'react-icons'
@@ -20,8 +26,8 @@ import {
 } from 'react-icons/fa'
 import { BsFillPersonLinesFill } from 'react-icons/bs'
 import { MdDashboard } from 'react-icons/md'
+import { FiMenu } from 'react-icons/fi'
 import { motion } from 'framer-motion'
-import Navbar from './Navbar'
 
 const MotionBox = motion(Box)
 const MotionFlex = motion(Flex)
@@ -38,6 +44,7 @@ interface NavItemProps extends BoxProps {
   icon: IconType
   children: ReactNode
   path: string
+  onClose?: () => void
 }
 
 interface MenuItem {
@@ -56,11 +63,17 @@ const menuItems: MenuItem[] = [
   { name: 'Especialidades', icon: FaStethoscope, path: '/dashboard/especialidades' },
 ]
 
-const NavItem = ({ icon, children, path, ...rest }: NavItemProps) => {
+const NavItem = ({ icon, children, path, onClose, ...rest }: NavItemProps) => {
   const location = useLocation()
   const isActive = location.pathname === path
   const activeBg = useColorModeValue('white', 'gray.700')
   const hoverBg = useColorModeValue('white', 'gray.700')
+
+  const handleClick = () => {
+    if (onClose) {
+      onClose()
+    }
+  }
 
   return (
     <Box
@@ -69,6 +82,7 @@ const NavItem = ({ icon, children, path, ...rest }: NavItemProps) => {
       style={{ textDecoration: 'none' }}
       _focus={{ boxShadow: 'none' }}
       w="full"
+      onClick={handleClick}
     >
       <Flex
         align="center"
@@ -105,54 +119,130 @@ const NavItem = ({ icon, children, path, ...rest }: NavItemProps) => {
   )
 }
 
+interface SidebarContentProps {
+  onClose?: () => void
+}
+
+const SidebarContent = ({ onClose }: SidebarContentProps) => {
+  const borderColor = useColorModeValue('gray.200', 'gray.700')
+  const sidebarBg = useColorModeValue('gray.50', 'gray.900')
+
+  return (
+    <Box
+      bg={sidebarBg}
+      borderRight="1px"
+      borderRightColor={borderColor}
+      w={{ base: 'full', md: '64' }}
+      pos="fixed"
+      h="full"
+    >
+      <Flex
+        h="16"
+        align="center"
+        mx="8"
+        mb="4"
+        borderBottomWidth="1px"
+        borderColor={borderColor}
+      >
+        <Text
+          fontSize="2xl"
+          fontWeight="bold"
+          bgGradient={`linear(to-r, ${customColors.primary}, ${customColors.secondary})`}
+          bgClip="text"
+        >
+          TrueDoc
+        </Text>
+      </Flex>
+      <VStack spacing={1} align="stretch">
+        {menuItems.map((item) => (
+          <NavItem key={item.path} icon={item.icon} path={item.path} onClose={onClose}>
+            {item.name}
+          </NavItem>
+        ))}
+      </VStack>
+    </Box>
+  )
+}
+
+interface MobileNavProps {
+  onOpen: () => void
+}
+
+const MobileNav = ({ onOpen }: MobileNavProps) => {
+  const bg = useColorModeValue('white', 'gray.800')
+  const borderColor = useColorModeValue('gray.200', 'gray.700')
+
+  return (
+    <Flex
+      ml={{ base: 0, md: '64' }}
+      px={{ base: 4, md: 4 }}
+      height="16"
+      alignItems="center"
+      bg={bg}
+      borderBottomWidth="1px"
+      borderBottomColor={borderColor}
+      justifyContent={{ base: 'space-between', md: 'flex-end' }}
+    >
+      <IconButton
+        display={{ base: 'flex', md: 'none' }}
+        onClick={onOpen}
+        variant="outline"
+        aria-label="open menu"
+        icon={<FiMenu />}
+      />
+
+      <Text
+        display={{ base: 'flex', md: 'none' }}
+        fontSize="2xl"
+        fontWeight="bold"
+        bgGradient={`linear(to-r, ${customColors.primary}, ${customColors.secondary})`}
+        bgClip="text"
+      >
+        TrueDoc
+      </Text>
+    </Flex>
+  )
+}
+
 interface DashboardLayoutProps {
   children: ReactNode
 }
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
+  const { isOpen, onOpen, onClose } = useDisclosure()
   const bg = useColorModeValue('white', 'gray.800')
-  const borderColor = useColorModeValue('gray.200', 'gray.700')
-  const sidebarBg = useColorModeValue('gray.50', 'gray.900')
+  const isMobile = useBreakpointValue({ base: true, md: false })
 
   return (
-    <Flex minH="calc(100vh - 4rem)" bg={useColorModeValue('gray.50', 'gray.800')}>
-      {/* Sidebar */}
-      <MotionBox
-        w="64"
-        bg={sidebarBg}
-        borderRight="1px"
-        borderRightColor={borderColor}
-        position="fixed"
-        h="calc(100vh - 4rem)"
-        initial={{ x: -100, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        <Flex
-          h="16"
-          align="center"
-          mx="8"
-          mb="4"
-          borderBottomWidth="1px"
-          borderColor={borderColor}
+    <Box minH="calc(100vh - 4rem)" bg={useColorModeValue('gray.50', 'gray.800')}>
+      {/* Desktop Sidebar */}
+      {!isMobile && (
+        <MotionBox
+          initial={{ x: -100, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.3 }}
         >
-          <Text
-            fontSize="2xl"
-            fontWeight="bold"
-            bgGradient={`linear(to-r, ${customColors.primary}, ${customColors.secondary})`}
-            bgClip="text"
-          >
-            TrueDoc
-          </Text>
-        </Flex>
-        <VStack spacing={1} align="stretch">
-          {menuItems.map((item) => (
-            <NavItem key={item.path} icon={item.icon} path={item.path}>
-              {item.name}
-            </NavItem>
-          ))}
-        </VStack>
-      </MotionBox>
+          <SidebarContent />
+        </MotionBox>
+      )}
+
+      {/* Mobile Drawer */}
+      <Drawer
+        isOpen={isOpen}
+        placement="left"
+        onClose={onClose}
+        returnFocusOnClose={false}
+        onOverlayClick={onClose}
+        size="full"
+      >
+        <DrawerOverlay />
+        <DrawerContent>
+          <SidebarContent onClose={onClose} />
+        </DrawerContent>
+      </Drawer>
+
+      {/* Mobile nav */}
+      <MobileNav onOpen={onOpen} />
 
       {/* Main Content */}
       <MotionBox
@@ -161,17 +251,17 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
-        borderRadius="2xl"
-        shadow="sm"
+        borderRadius={{ base: 'none', md: '2xl' }}
+        shadow={{ base: 'none', md: 'sm' }}
         minH="calc(100vh - 5rem)"
-        ml="72"
-        mr="6"
-        my="6"
-        p="8"
+        ml={{ base: 0, md: '72' }}
+        mr={{ base: 0, md: '6' }}
+        my={{ base: 0, md: '6' }}
+        p={{ base: 4, md: 8 }}
       >
         {children}
       </MotionBox>
-    </Flex>
+    </Box>
   )
 }
 

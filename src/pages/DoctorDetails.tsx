@@ -920,11 +920,12 @@ const DoctorDetails = () => {
 
   return (
     <PageContainer title="Detalhes do Médico">
-      <HStack justify="space-between" mb={6}>
+      <Stack direction={{ base: "column", md: "row" }} justify="space-between" mb={6} spacing={4}>
         <Button
           leftIcon={<FiArrowLeft />}
           onClick={handleBack}
           variant="ghost"
+          size={{ base: "sm", md: "md" }}
         >
           Voltar para lista
         </Button>
@@ -933,11 +934,12 @@ const DoctorDetails = () => {
             leftIcon={<FiEdit />}
             onClick={handleEdit}
             colorScheme="blue"
+            size={{ base: "sm", md: "md" }}
           >
             Editar
           </Button>
         )}
-      </HStack>
+      </Stack>
 
       {loading ? (
         <Center py={8}>
@@ -961,76 +963,76 @@ const DoctorDetails = () => {
             borderWidth="1px"
             borderColor={borderColor}
             shadow="sm"
-            p={6}
+            p={{ base: 4, md: 6 }}
           >
-            <VStack align="stretch" spacing={4}>
-              <Flex direction={{ base: 'column', md: 'row' }} gap={6} align="center">
-                {doctor.foto ? (
-                  <Box
-                    width="150px"
-                    height="150px"
-                    borderRadius="full"
-                    overflow="hidden"
-                  >
-                    <Image
-                      src={photoUrl || undefined}
-                      alt={doctor.nome}
-                      width="100%"
-                      height="100%"
-                      objectFit="cover"
-                      fallback={
-                        <Avatar
-                          size="2xl"
-                          name={doctor.nome}
-                          bg="green.500"
-                        />
-                      }
-                    />
-                  </Box>
-                ) : (
-                  <Avatar
-                    size="2xl"
-                    name={doctor.nome}
-                    bg="green.500"
-                  />
-                )}
-                <Box flex="1">
-                  <HStack justify="space-between" align="flex-start" w="full">
-                    <Box>
-                      <Text fontSize="2xl" fontWeight="bold">{doctor.nome}</Text>
-                      <Text color="gray.600">CRM: {doctor.crm}</Text>
-                    </Box>
-                    <Badge
-                      colorScheme={doctor.aprovado ? 'green' : 'orange'}
-                      px={3}
-                      py={1}
+                          <VStack align="stretch" spacing={4}>
+                <Flex direction={{ base: 'column', md: 'row' }} gap={6} align="center">
+                  {doctor.foto ? (
+                    <Box
+                      width={{ base: "120px", md: "150px" }}
+                      height={{ base: "120px", md: "150px" }}
                       borderRadius="full"
-                      fontSize="md"
+                      overflow="hidden"
                     >
-                      {doctor.aprovado ? 'Aprovado' : 'Pendente'}
-                    </Badge>
-                  </HStack>
-                </Box>
-              </Flex>
+                      <Image
+                        src={photoUrl || undefined}
+                        alt={doctor.nome}
+                        width="100%"
+                        height="100%"
+                        objectFit="cover"
+                        fallback={
+                          <Avatar
+                            size={{ base: "xl", md: "2xl" }}
+                            name={doctor.nome}
+                            bg="green.500"
+                          />
+                        }
+                      />
+                    </Box>
+                  ) : (
+                    <Avatar
+                      size={{ base: "xl", md: "2xl" }}
+                      name={doctor.nome}
+                      bg="green.500"
+                    />
+                  )}
+                  <Box flex="1">
+                    <Stack direction={{ base: "column", md: "row" }} justify="space-between" align={{ base: "center", md: "flex-start" }} w="full" spacing={4}>
+                      <Box textAlign={{ base: "center", md: "left" }}>
+                        <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="bold">{doctor.nome}</Text>
+                        <Text color="gray.600" fontSize={{ base: "sm", md: "md" }}>CRM: {doctor.crm}</Text>
+                      </Box>
+                      <Badge
+                        colorScheme={doctor.aprovado ? 'green' : 'orange'}
+                        px={{ base: 2, md: 3 }}
+                        py={1}
+                        borderRadius="full"
+                        fontSize={{ base: "sm", md: "md" }}
+                      >
+                        {doctor.aprovado ? 'Aprovado' : 'Pendente'}
+                      </Badge>
+                    </Stack>
+                  </Box>
+                </Flex>
 
               <Divider />
 
-              <Box>
-                <Text fontSize="lg" fontWeight="semibold" mb={3}>Informações de Contato</Text>
-                <VStack align="start" spacing={2}>
-                  <Text>Email: {doctor.email || 'Não informado'}</Text>
-                  {doctor.website && <Text>Website: {doctor.website}</Text>}
-                </VStack>
-              </Box>
+                              <Box>
+                  <Text fontSize={{ base: "md", md: "lg" }} fontWeight="semibold" mb={3}>Informações de Contato</Text>
+                  <VStack align="start" spacing={2}>
+                    <Text fontSize={{ base: "sm", md: "md" }}>Email: {doctor.email || 'Não informado'}</Text>
+                    {doctor.website && <Text fontSize={{ base: "sm", md: "md" }}>Website: {doctor.website}</Text>}
+                  </VStack>
+                </Box>
 
               {doctor.descricao && (
-                <>
-                  <Divider />
-                  <Box>
-                    <Text fontSize="lg" fontWeight="semibold" mb={3}>Sobre</Text>
-                    <Text>{doctor.descricao}</Text>
-                  </Box>
-                </>
+                                  <>
+                    <Divider />
+                    <Box>
+                      <Text fontSize={{ base: "md", md: "lg" }} fontWeight="semibold" mb={3}>Sobre</Text>
+                      <Text fontSize={{ base: "sm", md: "md" }}>{doctor.descricao}</Text>
+                    </Box>
+                  </>
               )}
 
               {doctor.diploma && (
@@ -1040,7 +1042,8 @@ const DoctorDetails = () => {
                     onClick={handleViewDiploma}
                     colorScheme="blue"
                     variant="outline"
-                    size="md"
+                    size={{ base: "sm", md: "md" }}
+                    w={{ base: "full", md: "auto" }}
                   >
                     Visualizar Diploma
                   </Button>
@@ -1051,11 +1054,11 @@ const DoctorDetails = () => {
 
               {/* Professional Information */}
               <Box>
-                <Text fontSize="lg" fontWeight="semibold" mb={3}>Informações Profissionais</Text>
+                <Text fontSize={{ base: "md", md: "lg" }} fontWeight="semibold" mb={3}>Informações Profissionais</Text>
                 <VStack align="start" spacing={2}>
-                  <Text><strong>RQE:</strong> {doctor.rqe || 'Não informado'}</Text>
-                  {doctor.new_rqe && <Text><strong>Novo RQE:</strong> {doctor.new_rqe}</Text>}
-                  <Text>
+                  <Text fontSize={{ base: "sm", md: "md" }}><strong>RQE:</strong> {doctor.rqe || 'Não informado'}</Text>
+                  {doctor.new_rqe && <Text fontSize={{ base: "sm", md: "md" }}><strong>Novo RQE:</strong> {doctor.new_rqe}</Text>}
+                  <Text fontSize={{ base: "sm", md: "md" }}>
                     <strong>Faculdade:</strong>{' '}
                     {doctor.faculdade?.nome || doctor.faculdade_outro || 'Não informada'}
                   </Text>
@@ -1069,61 +1072,65 @@ const DoctorDetails = () => {
                 <>
                   <Divider />
                   <Box>
-                    <Text fontSize="lg" fontWeight="semibold" mb={3}>Especialidades</Text>
+                    <Text fontSize={{ base: "md", md: "lg" }} fontWeight="semibold" mb={3}>Especialidades</Text>
                     <VStack align="start" spacing={4}>
                       {doctor.especialidades.map((especialidade) => (
-                        <Box key={especialidade.id} w="100%">
+                        <Box key={especialidade.id} w="100%" p={{ base: 3, md: 0 }} bg={{ base: "gray.50", md: "transparent" }} borderRadius={{ base: "md", md: "none" }}>
                           <VStack align="start" spacing={2} w="100%">
-                            <HStack spacing={2} justify="space-between" w="100%">
-                              <HStack spacing={2}>
-                                <Text fontWeight="medium">{especialidade.nome}</Text>
-                                <Badge colorScheme={especialidade.aprovado ? 'green' : 'orange'}>
-                                  {especialidade.aprovado ? 'Aprovada' : 'Pendente'}
-                                </Badge>
-                                {especialidade.show_profile && (
-                                  <Badge colorScheme="blue">Exibir no Perfil</Badge>
-                                )}
-                              </HStack>
-                              <HStack spacing={4} align="center">
-                                <IconButton
-                                  aria-label="Editar especialidade"
-                                  icon={<FiEdit />}
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedEspecialidade(especialidade);
-                                    onEditEspecialidadeOpen();
-                                  }}
-                                />
-                                <HStack spacing={2} align="center">
-                                  <Text fontSize="sm" color="gray.600">Exibir no Perfil</Text>
+                            <Stack direction={{ base: "column", md: "row" }} justify="space-between" w="100%" spacing={4}>
+                              <VStack align="start" spacing={2}>
+                                <HStack spacing={2} flexWrap="wrap">
+                                  <Text fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>{especialidade.nome}</Text>
+                                  <Badge colorScheme={especialidade.aprovado ? 'green' : 'orange'} fontSize={{ base: "xs", md: "sm" }}>
+                                    {especialidade.aprovado ? 'Aprovada' : 'Pendente'}
+                                  </Badge>
+                                  {especialidade.show_profile && (
+                                    <Badge colorScheme="blue" fontSize={{ base: "xs", md: "sm" }}>Exibir no Perfil</Badge>
+                                  )}
+                                </HStack>
+                              </VStack>
+                              <VStack align={{ base: "stretch", md: "center" }} spacing={3}>
+                                <HStack justify="space-between" w="full">
+                                  <IconButton
+                                    aria-label="Editar especialidade"
+                                    icon={<FiEdit />}
+                                    size={{ base: "xs", md: "sm" }}
+                                    onClick={() => {
+                                      setSelectedEspecialidade(especialidade);
+                                      onEditEspecialidadeOpen();
+                                    }}
+                                  />
+                                </HStack>
+                                <HStack justify="space-between" w="full">
+                                  <Text fontSize={{ base: "xs", md: "sm" }} color="gray.600">Exibir no Perfil</Text>
                                   <Switch
                                     isChecked={especialidade.show_profile}
                                     onChange={() => handleToggleShowProfile('especialidade', especialidade.id, especialidade.show_profile)}
                                     colorScheme="blue"
-                                    size="lg"
+                                    size={{ base: "md", md: "lg" }}
                                   />
                                 </HStack>
-                                <HStack spacing={2} align="center">
-                                  <Text fontSize="sm" color="gray.600">Aprovar</Text>
+                                <HStack justify="space-between" w="full">
+                                  <Text fontSize={{ base: "xs", md: "sm" }} color="gray.600">Aprovar</Text>
                                   <Switch
                                     isChecked={especialidade.aprovado}
                                     onChange={() => handleApproveEspecialidade(especialidade.id, especialidade.aprovado)}
                                     colorScheme="green"
-                                    size="lg"
+                                    size={{ base: "md", md: "lg" }}
                                   />
                                 </HStack>
-                              </HStack>
-                            </HStack>
+                              </VStack>
+                            </Stack>
                             {especialidade.instituicao_residencia_outra && (
-                              <HStack spacing={2}>
-                                <Text color="gray.600" fontSize="sm">
+                              <VStack align="start" spacing={1}>
+                                <Text color="gray.600" fontSize={{ base: "xs", md: "sm" }}>
                                   Instituição: {especialidade.instituicao_residencia_outra}
                                 </Text>
-                                <Badge colorScheme="yellow">Instituição não listada</Badge>
-                              </HStack>
+                                <Badge colorScheme="yellow" fontSize={{ base: "2xs", md: "xs" }}>Instituição não listada</Badge>
+                              </VStack>
                             )}
                             {especialidade.instituicao_residencia && (
-                              <Text color="gray.600" fontSize="sm">
+                              <Text color="gray.600" fontSize={{ base: "xs", md: "sm" }}>
                                 Instituição: {especialidade.instituicao_residencia.nome}
                               </Text>
                             )}
@@ -1140,35 +1147,37 @@ const DoctorDetails = () => {
                 <>
                   <Divider />
                   <Box>
-                    <Text fontSize="lg" fontWeight="semibold" mb={3}>Subespecialidades</Text>
+                    <Text fontSize={{ base: "md", md: "lg" }} fontWeight="semibold" mb={3}>Subespecialidades</Text>
                     <VStack align="start" spacing={4}>
                       {doctor.subespecialidades.map((subespecialidade) => (
-                        <Box key={subespecialidade.id} w="100%">
+                        <Box key={subespecialidade.id} w="100%" p={{ base: 3, md: 0 }} bg={{ base: "gray.50", md: "transparent" }} borderRadius={{ base: "md", md: "none" }}>
                           <VStack align="start" spacing={2} w="100%">
-                            <HStack spacing={2} justify="space-between" w="100%">
-                              <HStack spacing={2}>
-                                <Text fontWeight="medium">{subespecialidade.subespecialidade_nome}</Text>
-                                <Badge colorScheme={subespecialidade.aprovado ? 'green' : 'orange'}>
-                                  {subespecialidade.aprovado ? 'Aprovada' : 'Pendente'}
-                                </Badge>
-                              </HStack>
-                              <HStack spacing={2} align="center">
-                                <Text fontSize="sm" color="gray.600">Aprovar</Text>
+                            <Stack direction={{ base: "column", md: "row" }} justify="space-between" w="100%" spacing={4}>
+                              <VStack align="start" spacing={2}>
+                                <HStack spacing={2} flexWrap="wrap">
+                                  <Text fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>{subespecialidade.subespecialidade_nome}</Text>
+                                  <Badge colorScheme={subespecialidade.aprovado ? 'green' : 'orange'} fontSize={{ base: "xs", md: "sm" }}>
+                                    {subespecialidade.aprovado ? 'Aprovada' : 'Pendente'}
+                                  </Badge>
+                                </HStack>
+                              </VStack>
+                              <HStack justify="space-between" w={{ base: "full", md: "auto" }} minW={{ md: "200px" }}>
+                                <Text fontSize={{ base: "xs", md: "sm" }} color="gray.600">Aprovar</Text>
                                 <Switch
                                   isChecked={subespecialidade.aprovado}
                                   onChange={() => handleApproveSubespecialidade(subespecialidade.id, subespecialidade.aprovado)}
                                   colorScheme="green"
-                                  size="lg"
+                                  size={{ base: "md", md: "lg" }}
                                 />
                               </HStack>
-                            </HStack>
+                            </Stack>
                             {subespecialidade.instituicao_residencia && (
-                              <Text color="gray.600">
+                              <Text color="gray.600" fontSize={{ base: "xs", md: "sm" }}>
                                 Instituição: {subespecialidade.instituicao_residencia.nome}
                               </Text>
                             )}
                             {subespecialidade.instituicao_residencia_outra && (
-                              <Text color="gray.600">
+                              <Text color="gray.600" fontSize={{ base: "xs", md: "sm" }}>
                                 Instituição: {subespecialidade.instituicao_residencia_outra}
                               </Text>
                             )}
@@ -1185,7 +1194,7 @@ const DoctorDetails = () => {
                 <>
                   <Divider />
                   <Box>
-                    <Text fontSize="lg" fontWeight="semibold" mb={3}>Comprovantes</Text>
+                    <Text fontSize={{ base: "md", md: "lg" }} fontWeight="semibold" mb={3}>Comprovantes</Text>
                     <VStack align="start" spacing={4}>
                       {comprovantes.map((comprovante, index) => (
                         <Box key={comprovante.id} w="100%">
@@ -1194,7 +1203,8 @@ const DoctorDetails = () => {
                             onClick={() => handleViewComprovante(comprovante.arquivo)}
                             colorScheme="blue"
                             variant="outline"
-                            size="md"
+                            size={{ base: "sm", md: "md" }}
+                            w={{ base: "full", md: "auto" }}
                           >
                             Ver comprovante {index + 1}
                           </Button>
@@ -1210,49 +1220,51 @@ const DoctorDetails = () => {
                 <>
                   <Divider />
                   <Box>
-                    <Text fontSize="lg" fontWeight="semibold" mb={3}>Outras Formações</Text>
+                    <Text fontSize={{ base: "md", md: "lg" }} fontWeight="semibold" mb={3}>Outras Formações</Text>
                     <VStack align="start" spacing={4}>
                       {doctor.formacao_outros.map((formacao) => (
-                        <Box key={formacao.id} w="100%">
+                        <Box key={formacao.id} w="100%" p={{ base: 3, md: 0 }} bg={{ base: "gray.50", md: "transparent" }} borderRadius={{ base: "md", md: "none" }}>
                           <VStack align="start" spacing={2} w="100%">
-                            <HStack spacing={2} justify="space-between" w="100%">
-                              <HStack spacing={2}>
-                                <Text fontWeight="medium">{formacao.nome}</Text>
-                                <Badge colorScheme={formacao.aprovado ? 'green' : 'orange'}>
-                                  {formacao.aprovado ? 'Aprovada' : 'Pendente'}
-                                </Badge>
-                                {formacao.show_profile && (
-                                  <Badge colorScheme="blue">Exibir no Perfil</Badge>
-                                )}
-                              </HStack>
-                              <HStack spacing={4} align="center">
-                                <HStack spacing={2} align="center">
-                                  <Text fontSize="sm" color="gray.600">Exibir no Perfil</Text>
+                            <Stack direction={{ base: "column", md: "row" }} justify="space-between" w="100%" spacing={4}>
+                              <VStack align="start" spacing={2}>
+                                <HStack spacing={2} flexWrap="wrap">
+                                  <Text fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>{formacao.nome}</Text>
+                                  <Badge colorScheme={formacao.aprovado ? 'green' : 'orange'} fontSize={{ base: "xs", md: "sm" }}>
+                                    {formacao.aprovado ? 'Aprovada' : 'Pendente'}
+                                  </Badge>
+                                  {formacao.show_profile && (
+                                    <Badge colorScheme="blue" fontSize={{ base: "xs", md: "sm" }}>Exibir no Perfil</Badge>
+                                  )}
+                                </HStack>
+                              </VStack>
+                              <VStack align={{ base: "stretch", md: "center" }} spacing={3}>
+                                <HStack justify="space-between" w="full">
+                                  <Text fontSize={{ base: "xs", md: "sm" }} color="gray.600">Exibir no Perfil</Text>
                                   <Switch
                                     isChecked={formacao.show_profile}
                                     onChange={() => handleToggleShowProfile('formacao', formacao.id, formacao.show_profile)}
                                     colorScheme="blue"
-                                    size="lg"
+                                    size={{ base: "md", md: "lg" }}
                                   />
                                 </HStack>
-                                <HStack spacing={2} align="center">
-                                  <Text fontSize="sm" color="gray.600">Aprovar</Text>
+                                <HStack justify="space-between" w="full">
+                                  <Text fontSize={{ base: "xs", md: "sm" }} color="gray.600">Aprovar</Text>
                                   <Switch
                                     isChecked={formacao.aprovado}
                                     onChange={() => handleApproveFormacao(formacao.id, formacao.aprovado)}
                                     colorScheme="green"
-                                    size="lg"
+                                    size={{ base: "md", md: "lg" }}
                                   />
                                 </HStack>
-                              </HStack>
-                            </HStack>
+                              </VStack>
+                            </Stack>
                             {formacao.instituicao && (
-                              <HStack spacing={2}>
-                                <Text color="gray.600" fontSize="sm">
+                              <VStack align="start" spacing={1}>
+                                <Text color="gray.600" fontSize={{ base: "xs", md: "sm" }}>
                                   Instituição: {formacao.instituicao}
                                 </Text>
-                                <Badge colorScheme="yellow">Instituição não listada</Badge>
-                              </HStack>
+                                <Badge colorScheme="yellow" fontSize={{ base: "2xs", md: "xs" }}>Instituição não listada</Badge>
+                              </VStack>
                             )}
                           </VStack>
                         </Box>
@@ -1267,7 +1279,7 @@ const DoctorDetails = () => {
                 <>
                   <Divider />
                   <Box>
-                    <Text fontSize="lg" fontWeight="semibold" mb={3}>Comprovantes de Outras Formações</Text>
+                    <Text fontSize={{ base: "md", md: "lg" }} fontWeight="semibold" mb={3}>Comprovantes de Outras Formações</Text>
                     <VStack align="start" spacing={4}>
                       {comprovanteFormacaoOutros.map((comprovante, index) => (
                         <Box key={comprovante.id} w="100%">
@@ -1276,7 +1288,8 @@ const DoctorDetails = () => {
                             onClick={() => handleViewComprovanteFormacao(comprovante.arquivo)}
                             colorScheme="blue"
                             variant="outline"
-                            size="md"
+                            size={{ base: "sm", md: "md" }}
+                            w={{ base: "full", md: "auto" }}
                           >
                             Ver comprovante {index + 1}
                           </Button>
@@ -1289,26 +1302,26 @@ const DoctorDetails = () => {
 
               {/* Convênios */}
               <Box>
-                <Text fontSize="lg" fontWeight="semibold" mb={3}>Convênios</Text>
+                <Text fontSize={{ base: "md", md: "lg" }} fontWeight="semibold" mb={3}>Convênios</Text>
                 {doctor.convenios.length > 0 || doctor.convenio_outro ? (
                   <VStack align="start" spacing={2}>
                     <Wrap spacing={2}>
                       {doctor.convenios.map((conv, index) => (
                         <WrapItem key={index}>
-                          <Badge colorScheme="purple" px={3} py={1} fontSize="md">
+                          <Badge colorScheme="purple" px={{ base: 2, md: 3 }} py={1} fontSize={{ base: "xs", md: "md" }}>
                             {conv.nome}
                           </Badge>
                         </WrapItem>
                       ))}
                     </Wrap>
                     {doctor.convenio_outro && (
-                      <Text mt={2}>
+                      <Text mt={2} fontSize={{ base: "sm", md: "md" }}>
                         <strong>Outros convênios:</strong> {doctor.convenio_outro}
                       </Text>
                     )}
                   </VStack>
                 ) : (
-                  <Text color="gray.500">Nenhum convênio cadastrado</Text>
+                  <Text color="gray.500" fontSize={{ base: "sm", md: "md" }}>Nenhum convênio cadastrado</Text>
                 )}
               </Box>
 
@@ -1316,53 +1329,53 @@ const DoctorDetails = () => {
 
               {/* Redes Sociais e Contato */}
               <Box>
-                <Text fontSize="lg" fontWeight="semibold" mb={3}>Redes Sociais e Contato</Text>
+                <Text fontSize={{ base: "md", md: "lg" }} fontWeight="semibold" mb={3}>Redes Sociais e Contato</Text>
                 <VStack align="start" spacing={2}>
                   {doctor.forma_contato && (
-                    <Text>
+                    <Text fontSize={{ base: "sm", md: "md" }}>
                       <strong>Forma de Contato Preferida:</strong>{' '}
                       {doctor.forma_contato.charAt(0).toUpperCase() + doctor.forma_contato.slice(1)}
                     </Text>
                   )}
                   {doctor.contato && (
-                    <Text><strong>Contato:</strong> {doctor.contato}</Text>
+                    <Text fontSize={{ base: "sm", md: "md" }}><strong>Contato:</strong> {doctor.contato}</Text>
                   )}
                   {doctor.facebook && (
                     <HStack>
-                      <Icon as={FaFacebook} color="blue.500" />
-                      <Link href={doctor.facebook} isExternal color="blue.500">
+                      <Icon as={FaFacebook} color="blue.500" boxSize={{ base: 4, md: 5 }} />
+                      <Link href={doctor.facebook} isExternal color="blue.500" fontSize={{ base: "sm", md: "md" }}>
                         Facebook
                       </Link>
                     </HStack>
                   )}
                   {doctor.instagram && (
                     <HStack>
-                      <Icon as={FaInstagram} color="pink.500" />
-                      <Link href={doctor.instagram} isExternal color="pink.500">
+                      <Icon as={FaInstagram} color="pink.500" boxSize={{ base: 4, md: 5 }} />
+                      <Link href={doctor.instagram} isExternal color="pink.500" fontSize={{ base: "sm", md: "md" }}>
                         Instagram
                       </Link>
                     </HStack>
                   )}
                   {doctor.tiktok && (
                     <HStack>
-                      <Icon as={FaTiktok} />
-                      <Link href={doctor.tiktok} isExternal>
+                      <Icon as={FaTiktok} boxSize={{ base: 4, md: 5 }} />
+                      <Link href={doctor.tiktok} isExternal fontSize={{ base: "sm", md: "md" }}>
                         TikTok
                       </Link>
                     </HStack>
                   )}
                   {doctor.linkedin && (
                     <HStack>
-                      <Icon as={FaLinkedin} color="blue.600" />
-                      <Link href={doctor.linkedin} isExternal color="blue.600">
+                      <Icon as={FaLinkedin} color="blue.600" boxSize={{ base: 4, md: 5 }} />
+                      <Link href={doctor.linkedin} isExternal color="blue.600" fontSize={{ base: "sm", md: "md" }}>
                         LinkedIn
                       </Link>
                     </HStack>
                   )}
                   {doctor.twitter && (
                     <HStack>
-                      <Icon as={FaTwitter} color="blue.400" />
-                      <Link href={doctor.twitter} isExternal color="blue.400">
+                      <Icon as={FaTwitter} color="blue.400" boxSize={{ base: 4, md: 5 }} />
+                      <Link href={doctor.twitter} isExternal color="blue.400" fontSize={{ base: "sm", md: "md" }}>
                         Twitter
                       </Link>
                     </HStack>
@@ -1376,7 +1389,7 @@ const DoctorDetails = () => {
                   <Divider />
                   <Box>
                     <HStack>
-                      <Badge colorScheme="green" px={3} py={1} fontSize="md">
+                      <Badge colorScheme="green" px={{ base: 2, md: 3 }} py={1} fontSize={{ base: "sm", md: "md" }}>
                         Oferece Teleconsulta
                       </Badge>
                     </HStack>
@@ -1389,33 +1402,34 @@ const DoctorDetails = () => {
                 <>
                   <Divider />
                   <Box>
-                    <Text fontSize="lg" fontWeight="semibold" mb={3}>Endereços</Text>
+                    <Text fontSize={{ base: "md", md: "lg" }} fontWeight="semibold" mb={3}>Endereços</Text>
                     <VStack align="start" spacing={4}>
                       {doctor.localizacoes.map((loc) => (
-                        <Box key={loc.id} p={4} bg="gray.50" borderRadius="md" w="100%">
-                          <HStack justify="space-between" w="100%" mb={2}>
-                            <Text fontWeight="medium">{loc.nome_endereco}</Text>
+                        <Box key={loc.id} p={{ base: 3, md: 4 }} bg="gray.50" borderRadius="md" w="100%">
+                          <Stack direction={{ base: "column", md: "row" }} justify="space-between" w="100%" mb={2} spacing={2}>
+                            <Text fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>{loc.nome_endereco}</Text>
                             <Button
-                              size="sm"
+                              size={{ base: "xs", md: "sm" }}
                               leftIcon={<FiEdit />}
                               onClick={() => handleEditAddress(loc)}
                               colorScheme="blue"
                               variant="ghost"
+                              w={{ base: "full", md: "auto" }}
                             >
                               Editar
                             </Button>
-                          </HStack>
+                          </Stack>
                           <VStack align="start" spacing={1}>
-                            <Text>
+                            <Text fontSize={{ base: "xs", md: "sm" }}>
                               {loc.logradouro}, {loc.numero}
                               {loc.complemento && `, ${loc.complemento}`}
                             </Text>
-                            <Text>{loc.bairro}</Text>
-                            <Text>
+                            <Text fontSize={{ base: "xs", md: "sm" }}>{loc.bairro}</Text>
+                            <Text fontSize={{ base: "xs", md: "sm" }}>
                               {loc.cidade} - {loc.estado}
                             </Text>
-                            <Text>CEP: {loc.cep}</Text>
-                            {loc.telefone && <Text>Telefone: {loc.telefone}</Text>}
+                            <Text fontSize={{ base: "xs", md: "sm" }}>CEP: {loc.cep}</Text>
+                            {loc.telefone && <Text fontSize={{ base: "xs", md: "sm" }}>Telefone: {loc.telefone}</Text>}
                           </VStack>
                         </Box>
                       ))}
@@ -1426,7 +1440,7 @@ const DoctorDetails = () => {
 
               <Divider />
 
-              <Text fontSize="sm" color="gray.500">
+              <Text fontSize={{ base: "xs", md: "sm" }} color="gray.500">
                 Data de cadastro: {formatDate(doctor.created_at)}
               </Text>
             </VStack>

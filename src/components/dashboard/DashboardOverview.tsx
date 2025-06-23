@@ -379,12 +379,14 @@ const DashboardOverview = () => {
           <Heading size="md" mb={4}>
             Gerar Listas de Email
           </Heading>
-          <ButtonGroup spacing={4}>
+          <ButtonGroup spacing={4} flexWrap="wrap" size={{ base: "sm", md: "md" }}>
             <Button
               leftIcon={<FaEnvelope />}
               colorScheme="blue"
               onClick={() => generateEmailList('doctors')}
               isLoading={isGeneratingEmails}
+              w={{ base: "full", md: "auto" }}
+              mb={{ base: 2, md: 0 }}
             >
               Lista de Médicos
             </Button>
@@ -393,6 +395,8 @@ const DashboardOverview = () => {
               colorScheme="green"
               onClick={() => generateEmailList('leads')}
               isLoading={isGeneratingEmails}
+              w={{ base: "full", md: "auto" }}
+              mb={{ base: 2, md: 0 }}
             >
               Lista de Leads
             </Button>
@@ -401,6 +405,7 @@ const DashboardOverview = () => {
               colorScheme="purple"
               onClick={() => generateEmailList('all')}
               isLoading={isGeneratingEmails}
+              w={{ base: "full", md: "auto" }}
             >
               Lista Completa
             </Button>
@@ -411,7 +416,7 @@ const DashboardOverview = () => {
       <Modal 
         isOpen={emailListModalOpen} 
         onClose={() => setEmailListModalOpen(false)}
-        size="xl"
+        size={{ base: "full", md: "xl" }}
       >
         <ModalOverlay />
         <ModalContent>

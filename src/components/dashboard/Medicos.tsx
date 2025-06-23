@@ -16,6 +16,7 @@ import {
   useColorModeValue,
   Button,
   HStack,
+  VStack,
   Input,
   InputGroup,
   InputLeftElement,
@@ -251,10 +252,11 @@ const Medicos = () => {
       return (
         <Badge
           colorScheme="orange"
-          px={2}
+          px={{ base: 1, md: 2 }}
           py={1}
           borderRadius="full"
           textTransform="capitalize"
+          fontSize={{ base: "2xs", md: "xs" }}
         >
           Pendente
         </Badge>
@@ -265,12 +267,14 @@ const Medicos = () => {
       return (
         <Badge
           colorScheme="yellow"
-          px={2}
+          px={{ base: 1, md: 2 }}
           py={1}
           borderRadius="full"
           textTransform="capitalize"
+          fontSize={{ base: "2xs", md: "xs" }}
         >
-          Alterações Pendentes
+          <Text display={{ base: "none", md: "block" }}>Alterações Pendentes</Text>
+          <Text display={{ base: "block", md: "none" }}>Alterações</Text>
         </Badge>
       )
     }
@@ -278,10 +282,11 @@ const Medicos = () => {
     return (
       <Badge
         colorScheme="green"
-        px={2}
+        px={{ base: 1, md: 2 }}
         py={1}
         borderRadius="full"
         textTransform="capitalize"
+        fontSize={{ base: "2xs", md: "xs" }}
       >
         Aprovado
       </Badge>
@@ -306,23 +311,21 @@ const Medicos = () => {
       title="Médicos"
       description="Gerencie os médicos cadastrados no sistema"
     >
-      <HStack spacing={4} mb={6} justify="space-between" align="flex-start">
-        <HStack spacing={4} flex={1}>
-          <InputGroup maxW="xs">
-            <InputLeftElement pointerEvents="none">
-              <FiSearch color="gray.300" />
-            </InputLeftElement>
-            <Input
-              placeholder="Buscar médicos..."
-              value={searchTerm}
-              onChange={handleSearch}
-            />
-          </InputGroup>
-        </HStack>
+      <VStack spacing={4} mb={6} align="stretch">
+        <InputGroup maxW={{ base: "full", md: "xs" }}>
+          <InputLeftElement pointerEvents="none">
+            <FiSearch color="gray.300" />
+          </InputLeftElement>
+          <Input
+            placeholder="Buscar médicos..."
+            value={searchTerm}
+            onChange={handleSearch}
+          />
+        </InputGroup>
 
-        <HStack spacing={6}>
-          <FormControl display="flex" alignItems="center" maxW="xs">
-            <FormLabel htmlFor="show-unapproved" mb="0" mr={3}>
+        <VStack spacing={4} align="stretch">
+          <FormControl display="flex" alignItems="center" justifyContent="space-between">
+            <FormLabel htmlFor="show-unapproved" mb="0">
               Não Aprovados
             </FormLabel>
             <Switch
@@ -332,8 +335,8 @@ const Medicos = () => {
               onChange={toggleUnapproved}
             />
           </FormControl>
-          <FormControl display="flex" alignItems="center" maxW="xs">
-            <FormLabel htmlFor="show-approved" mb="0" mr={3}>
+          <FormControl display="flex" alignItems="center" justifyContent="space-between">
+            <FormLabel htmlFor="show-approved" mb="0">
               Aprovados
             </FormLabel>
             <Switch
@@ -343,8 +346,8 @@ const Medicos = () => {
               onChange={toggleApproved}
             />
           </FormControl>
-          <FormControl display="flex" alignItems="center" maxW="xs">
-            <FormLabel htmlFor="show-pending-changes" mb="0" mr={3}>
+          <FormControl display="flex" alignItems="center" justifyContent="space-between">
+            <FormLabel htmlFor="show-pending-changes" mb="0">
               Alterações Pendentes
             </FormLabel>
             <Switch
@@ -354,8 +357,8 @@ const Medicos = () => {
               onChange={togglePendingChanges}
             />
           </FormControl>
-        </HStack>
-      </HStack>
+        </VStack>
+      </VStack>
 
       <MotionBox
         bg={tableBg}
@@ -366,17 +369,19 @@ const Medicos = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        overflow="hidden"
       >
-        <Table>
-          <Thead>
-            <Tr>
-              <Th>Nome</Th>
-              <Th>CRM</Th>
-              <Th>Status</Th>
-              <Th>Data de Cadastro</Th>
-              <Th></Th>
-            </Tr>
-          </Thead>
+        <Box overflowX="auto">
+          <Table size={{ base: "sm", md: "md" }}>
+            <Thead>
+              <Tr>
+                <Th fontSize={{ base: "xs", md: "sm" }} p={{ base: 2, md: 4 }}>Nome</Th>
+                <Th fontSize={{ base: "xs", md: "sm" }} p={{ base: 2, md: 4 }}>CRM</Th>
+                <Th fontSize={{ base: "xs", md: "sm" }} p={{ base: 2, md: 4 }}>Status</Th>
+                <Th display={{ base: "none", md: "table-cell" }} fontSize={{ base: "xs", md: "sm" }} p={{ base: 2, md: 4 }}>Data de Cadastro</Th>
+                <Th w={{ base: "60px", md: "80px" }} p={{ base: 2, md: 4 }}></Th>
+              </Tr>
+            </Thead>
           <Tbody>
             {loading ? (
               <Tr>
@@ -401,19 +406,47 @@ const Medicos = () => {
                   _hover={{ bg: 'gray.50', cursor: 'pointer' }}
                   onClick={() => handleDoctorClick(doctor.id)}
                 >
-                  <Td fontWeight="medium">{doctor.nome}</Td>
-                <Td>{doctor.crm}</Td>
-                  <Td>{getStatusBadge(doctor.aprovado, doctor.has_pending_changes || false)}</Td>
-                  <Td>{new Date(doctor.created_at).toLocaleDateString('pt-BR')}</Td>
-                  <Td onClick={(e) => e.stopPropagation()}>
-                  <Menu>
-                    <MenuButton
-                      as={IconButton}
-                      icon={<FiMoreVertical />}
-                      variant="ghost"
-                      size="sm"
-                      borderRadius="full"
-                    />
+                  <Td 
+                    fontWeight="medium" 
+                    fontSize={{ base: "xs", md: "sm" }} 
+                    p={{ base: 2, md: 4 }}
+                    maxW={{ base: "120px", md: "200px" }}
+                    whiteSpace="nowrap"
+                    overflow="hidden"
+                    textOverflow="ellipsis"
+                  >
+                    {doctor.nome}
+                  </Td>
+                  <Td 
+                    fontSize={{ base: "xs", md: "sm" }} 
+                    p={{ base: 2, md: 4 }}
+                    whiteSpace="nowrap"
+                  >
+                    {doctor.crm}
+                  </Td>
+                  <Td 
+                    fontSize={{ base: "xs", md: "sm" }} 
+                    p={{ base: 2, md: 4 }}
+                  >
+                    {getStatusBadge(doctor.aprovado, doctor.has_pending_changes || false)}
+                  </Td>
+                  <Td 
+                    display={{ base: "none", md: "table-cell" }} 
+                    fontSize={{ base: "xs", md: "sm" }} 
+                    p={{ base: 2, md: 4 }}
+                    whiteSpace="nowrap"
+                  >
+                    {new Date(doctor.created_at).toLocaleDateString('pt-BR')}
+                  </Td>
+                  <Td onClick={(e) => e.stopPropagation()} p={{ base: 1, md: 4 }}>
+                                      <Menu>
+                      <MenuButton
+                        as={IconButton}
+                        icon={<FiMoreVertical />}
+                        variant="ghost"
+                        size={{ base: "xs", md: "sm" }}
+                        borderRadius="full"
+                      />
                     <MenuList>
                         <MenuItem onClick={() => handleDoctorClick(doctor.id)}>Ver detalhes</MenuItem>
                       <MenuItem>Editar</MenuItem>
@@ -425,21 +458,24 @@ const Medicos = () => {
               ))
             )}
           </Tbody>
-        </Table>
+          </Table>
+        </Box>
         
         {/* Pagination Controls */}
         {!loading && doctors.length > 0 && (
-          <HStack justify="center" p={4} spacing={4}>
-            <ButtonGroup size="sm" variant="outline" spacing={2}>
+          <HStack justify="center" p={4} spacing={4} flexWrap="wrap">
+            <ButtonGroup size={{ base: "xs", md: "sm" }} variant="outline" spacing={2}>
               <Button
                 leftIcon={<FiChevronLeft />}
                 onClick={handlePreviousPage}
                 isDisabled={currentPage === 0}
+                minW={{ base: "80px", md: "auto" }}
               >
-                Anterior
+                <Text display={{ base: "none", sm: "block" }}>Anterior</Text>
+                <Text display={{ base: "block", sm: "none" }}>Ant</Text>
               </Button>
               <Center minW="100px">
-                <Text fontSize="sm">
+                <Text fontSize={{ base: "xs", md: "sm" }}>
                   Página {currentPage + 1} de {totalPages}
                 </Text>
               </Center>
@@ -447,8 +483,10 @@ const Medicos = () => {
                 rightIcon={<FiChevronRight />}
                 onClick={handleNextPage}
                 isDisabled={currentPage >= totalPages - 1}
+                minW={{ base: "80px", md: "auto" }}
               >
-                Próxima
+                <Text display={{ base: "none", sm: "block" }}>Próxima</Text>
+                <Text display={{ base: "block", sm: "none" }}>Prox</Text>
               </Button>
             </ButtonGroup>
           </HStack>
