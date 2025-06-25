@@ -250,7 +250,7 @@ const DashboardOverview = () => {
           const allEmails = [
             ...(doctorsResult.data || []).map(item => item.email),
             ...(leadsResult.data || []).map(item => item.email)
-          ].join('; ');
+          ].join(';\r\n');
 
           setEmailList(allEmails);
           setEmailListTitle('Lista Completa de Emails');
@@ -273,7 +273,8 @@ const DashboardOverview = () => {
 
       const emails = (data || [])
         .map(item => item.email)
-        .join('; ');
+        .join(';\r\n');
+        
 
       setEmailList(emails);
       setEmailListModalOpen(true);
